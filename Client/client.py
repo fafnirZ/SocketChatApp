@@ -15,6 +15,9 @@ if len(sys.argv) != 3:
   print("\n===== Error usage, python3 client.py SERVER_IP SERVER_PORT ======\n")
   exit(0)
 
+'''
+config and ports
+'''
 
 serverHost = sys.argv[1]
 serverPort = int(sys.argv[2])
@@ -58,10 +61,9 @@ if __name__ == '__main__':
   '''
   while authenticated:
     message = input()
-    print(message)
     if message == 'whoelse':
       parsed = dumpsPacket('whoelse', json.dumps({}))
-      print(parsed)
+      # print(parsed)
       clientSocket.sendall(parsed.encode())
 
       response = clientSocket.recv(1024)

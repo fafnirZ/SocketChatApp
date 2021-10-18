@@ -43,7 +43,7 @@ def checkCredentials(username:str, password:str) -> bool:
   credentials = getAllCredentials()
   for l in credentials:
     user, pwd = l.split(" ")
-    print(password)
+    # print(password)
     if user == username and pwd == password:
       return True
 
@@ -53,7 +53,7 @@ def checkCredentials(username:str, password:str) -> bool:
 handler for login function
 '''
 def loginHandler(contents:dict, socket) -> bool:
-  print(contents)
+  # print(contents)
   try:
     if(len(contents) < 1 or len(contents) > 2):
       raise InvalidInputException
