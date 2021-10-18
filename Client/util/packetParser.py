@@ -12,10 +12,10 @@ responses will be in format
 
 example request and response
 
-[login] username=abba
-[200] resp=success
-[login] username=abba&password=pass
-[400] resp="invalid credentials"
+[login] {user: aaa}
+[200] success
+[login] {user: aaa, password: bbb}
+[400] {err :"invalid credentials"}
 
 '''
 def loadsPacket(msg: str) -> (str, str):
