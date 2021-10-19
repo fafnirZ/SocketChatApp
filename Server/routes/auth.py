@@ -12,33 +12,8 @@ from exceptions.AuthExceptions import UserNotFoundException, InvalidCredentialsE
 from exceptions.InputExceptions import InvalidInputException
 
 # imports
-from Server.credentials import saveCredentials, getAllCredentials
+from Server.credentials import saveCredentials, checkUsername, checkCredentials
 
-'''
-checks if the username provided is in credenitals file
-'''
-def checkUsername(username: str) -> bool:
-  credentials = getAllCredentials()
-  
-  for l in credentials:
-    user, _ = l.split(" ")
-    if user == username:
-      return True
-  return False
-  
-'''
-checks if username and password is the same as 
-the one stored in credentials file
-'''
-def checkCredentials(username:str, password:str) -> bool:
-  credentials = getAllCredentials()
-  for l in credentials:
-    user, pwd = l.split(" ")
-    # print(password)
-    if user == username and pwd == password:
-      return True
-
-  return False
 
 '''
 handler for login function
@@ -95,7 +70,9 @@ def loginHandler(contents:dict, socket) -> bool:
 def registerHandler(contents: dict, socket) -> bool:
   '''
     TODO checks
-    assumptions: just append to the end
+    assumptions: just append to the end no error checking whatsoever 
+    assumes that the username is not already existing
   '''
   saveCredentials(contents['user'], contents['password'])
+  response = dumpsPacket(200, "success").encode('utf-8')
 

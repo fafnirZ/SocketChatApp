@@ -66,6 +66,9 @@ class ClientThread(Thread):
         contents = extractContentsToDict(contents)
         logged = registerHandler(contents, self.clientSocket)
 
+        if logged:
+          self.upgradeConnection(contents)
+
       elif code == "whoelse":
         userlist = whoelse(self)
         for u in userlist:
