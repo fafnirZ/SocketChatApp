@@ -8,8 +8,8 @@ from threading import Thread
 import sys, select
 
 #utils
-from config import serverSocket
-from ClientThread import ClientThread
+from Server.config import serverSocket
+from Server.ClientThread import ClientThread
 
 
 

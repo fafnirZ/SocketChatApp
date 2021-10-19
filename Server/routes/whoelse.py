@@ -1,7 +1,7 @@
 # why can i use storage instead of ..storage?
 # because the dir structure is from the __name__==__main__ file
 # https://stackoverflow.com/questions/30669474/beyond-top-level-package-error-in-relative-import
-from storage import getOnlineUsers
+from Server.storage import getOnlineUsers
 
 def whoelse(thread) -> list:
   '''

@@ -1,16 +1,19 @@
 from threading import Thread
 
-# util 
-from util.packetParser import loadsPacket, extractContentsToDict
-from util.auth import loginHandler
-from util.whoelse import whoelse
+# Server Imports
 
-# exceptions
+from Server.routes.auth import loginHandler, registerHandler
+from Server.routes.whoelse import whoelse
+
+from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline
+from Server.User import User
+
+# exceptions from root dir
 from exceptions.AuthExceptions import UserNotFoundException
 from exceptions.InputExceptions import InvalidInputException
 
-from storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline
-from User import User
+# utils from root dir
+from util.packetParser import loadsPacket, extractContentsToDict
 
 class ClientThread(Thread):
   
@@ -58,12 +61,17 @@ class ClientThread(Thread):
         # since logged in, that means username and password is provided correctly
         if logged:
           self.upgradeConnection(contents)
+      
+      elif code == "register":
+        contents = extractContentsToDict(contents)
+        logged = registerHandler(contents, self.clientSocket)
 
-
-      if code == "whoelse":
+      elif code == "whoelse":
         userlist = whoelse(self)
         for u in userlist:
           self.clientSocket.sendall(u.encode())
+
+  
   
   def upgradeConnection(self, contents: dict):
 

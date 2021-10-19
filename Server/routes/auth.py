@@ -5,23 +5,14 @@ to be forwarded to ClientThread
 import os
 
 # utils
-from .packetParser import dumpsPacket
+from util.packetParser import dumpsPacket
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException, InvalidCredentialsException
 from exceptions.InputExceptions import InvalidInputException
 
-
-'''
-get all credentials in credential file
-'''
-def getAllCredentials() -> list:
-  l = []
-  with open(os.path.dirname(__file__)+'/../credentials.txt', 'r') as f:
-    for line in f:
-      l.append(line.rstrip())
-  return l
-
+# imports
+from Server.credentials import saveCredentials, getAllCredentials
 
 '''
 checks if the username provided is in credenitals file
@@ -80,13 +71,31 @@ def loginHandler(contents:dict, socket) -> bool:
         raise UserNotFoundException
   
   except InvalidCredentialsException as e:
-    print('user credentials are invalid')
     # todo handle exceptions and send back to client
+    response = dumpsPacket(401, "Invalid Credentials").encode('utf-8')
+    socket.sendall(response)
+    return
 
   except UserNotFoundException as e:
-    print('user is not found')
+    # print('user is not found')
+    response = dumpsPacket(400, "User not found").encode('utf-8')
+    socket.sendall(response)
+    return
 
   except InvalidInputException as e:
     print('input is invalid')
+    return
   
   return False
+
+
+'''
+  register handler
+'''
+def registerHandler(contents: dict, socket) -> bool:
+  '''
+    TODO checks
+    assumptions: just append to the end
+  '''
+  saveCredentials(contents['user'], contents['password'])
+
