@@ -16,6 +16,6 @@ class User():
     return self.__password
 
   def checkCredentials(self, user: str, password: str) -> bool:
-    if self.getUsername() == user and self.getPassword == password:
+    if self.getUsername() == user and self.getPassword() == password:
       return True
     return False

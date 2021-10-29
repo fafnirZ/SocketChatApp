@@ -4,12 +4,17 @@ from threading import Thread
 
 from Server.routes.auth import loginHandler, registerHandler
 from Server.routes.whoelse import whoelse
+from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 
 from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline
 from Server.User import User
 
+#utils
+from util.packetParser import dumpsPacket
+
+
 # exceptions from root dir
-from exceptions.AuthExceptions import UserNotFoundException
+from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException,UserTimedOutException
 from exceptions.InputExceptions import InvalidInputException
 
 # utils from root dir
@@ -23,6 +28,11 @@ class ClientThread(Thread):
     self.clientAddress = clientAddress
     self.clientSocket = clientSocket
     self.clientActive = False
+
+    # max attempts before timeout
+    self.max_attempts = 3
+    # initialises failed attempts as 0
+    self.attempts = 0
 
     print('=== New connection for: ', clientAddress)
     self.clientActive = True
@@ -56,7 +66,28 @@ class ClientThread(Thread):
 
       if code == "login":
         contents = extractContentsToDict(contents)
-        logged = loginHandler(contents, self.clientSocket)
+        
+        '''
+        only checks if there is a password in the contents
+          check if user is already online or blocked
+          TODO handle automatically removing user from blocked
+        '''
+        if('password' in contents):
+          err = self.checkAuthExceptions(contents)
+          if(err):
+            # break or exit
+            break
+
+        '''
+        handle invalid credentials
+        '''
+        try:
+          logged = loginHandler(contents, self.clientSocket)
+        except InvalidCredentialsException as e:
+          self.attempts += 1
+          if self.attempts >= self.max_attempts:
+            # block user
+            addUserTimeOut(User(contents['user'], contents['password']))
 
         # since logged in, that means username and password is provided correctly
         if logged:
@@ -107,6 +138,24 @@ class ClientThread(Thread):
       self.user = user
       # appending this thread to online_users
       addOnlineUsers(self)
+
+  def checkAuthExceptions(self, contents:dict) -> bool:
+    try:
+      checkUserLoggedIn(contents)
+      checkUserTimedOut(contents)
+    except UserAlreadyOnlineException as e:
+      print("user already online")
+      response = dumpsPacket(400, "User already online").encode('utf-8')
+      self.clientSocket.sendall(response)
+      # send signal to client to exit
+      return True
+    except UserTimedOutException as e:
+      print("user blocked")
+      response = dumpsPacket(404, "User blocked").encode('utf-8')
+      self.clientSocket.sendall(response)
+      # send signal to client to exit
+      return True
+    return False
 
 
 

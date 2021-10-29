@@ -12,6 +12,14 @@ List<User>
 '''
 all_users = []
 
+
+'''
+List<User>
+banned from logging on for next 30 seconds
+'''
+timedout_users = []
+
+
 '''
 helper functions
 '''
@@ -35,9 +43,15 @@ def userOnline(user: tuple) -> bool:
   online_users = List<ClientThread>
   assumptions: ClientThread must include .User
   '''
+
+
   username, password = user
   for u in online_users:
-    if user.checkCredentials(username, password):
+    # print(username)
+    # print(password)
+    # print(u.user.getUsername())
+    # print(u.user.getPassword())
+    if u.user.checkCredentials(username, password):
       return True
 
   return False
@@ -95,3 +109,17 @@ def getSpecificUser(user: tuple):
   for u in all_users:
     if u.checkCredentials(username, password):
       return u
+
+'''
+methods for timed out users
+'''
+def userTimedOut(user: tuple) -> bool:
+  username, password = user
+  for u in timedout_users:
+    if(u.checkCredentials(username, password)):
+      return True
+  return False
+
+
+def addUserTimeOut(user):
+  timedout_users.append(user)
