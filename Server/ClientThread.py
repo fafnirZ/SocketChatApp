@@ -84,7 +84,7 @@ class ClientThread(Thread):
     # packing username and password
     # into a tuple
     creds = (username, password)
-
+    print("upgraded")
     '''
     checks if user is already registered
     in the non persisted memory

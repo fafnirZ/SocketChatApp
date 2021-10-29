@@ -76,3 +76,5 @@ def registerHandler(contents: dict, socket) -> bool:
   saveCredentials(contents['user'], contents['password'])
   response = dumpsPacket(200, "success").encode('utf-8')
 
+  return True
+
