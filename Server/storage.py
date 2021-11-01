@@ -21,7 +21,6 @@ stores in user, banned time
 timedout_users = []
 
 
-
 '''
 helper functions
 '''
@@ -45,7 +44,6 @@ def userOnline(user: tuple) -> bool:
   online_users = List<ClientThread>
   assumptions: ClientThread must include .User
   '''
-
 
   username, password = user
   for u in online_users:
