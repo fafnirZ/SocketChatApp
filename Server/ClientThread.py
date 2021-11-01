@@ -1,4 +1,5 @@
 from threading import Thread
+import time
 
 # Server Imports
 
@@ -6,7 +7,7 @@ from Server.routes.auth import loginHandler, registerHandler
 from Server.routes.whoelse import whoelse
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 
-from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline
+from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut
 from Server.User import User
 
 #utils
@@ -14,7 +15,7 @@ from util.packetParser import dumpsPacket
 
 
 # exceptions from root dir
-from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException,UserTimedOutException
+from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException,UserTimedOutException, InvalidCredentialsException
 from exceptions.InputExceptions import InvalidInputException
 
 # utils from root dir
@@ -87,7 +88,18 @@ class ClientThread(Thread):
           self.attempts += 1
           if self.attempts >= self.max_attempts:
             # block user
-            addUserTimeOut(User(contents['user'], contents['password']))
+            user = User(contents['user'], contents['password'])
+            user.setBannedTime(time.time())
+            addUserTimeOut(user)
+
+            # send to frontend
+            response = dumpsPacket(403, "Invalid Password. Your account has been blocked. Please try again later").encode('utf-8')
+            self.clientSocket.sendall(response)
+          else:
+            # todo handle exceptions and send back to client
+            response = dumpsPacket(401, "Invalid Credentials").encode('utf-8')
+            self.clientSocket.sendall(response)
+
 
         # since logged in, that means username and password is provided correctly
         if logged:
@@ -144,17 +156,17 @@ class ClientThread(Thread):
       checkUserLoggedIn(contents)
       checkUserTimedOut(contents)
     except UserAlreadyOnlineException as e:
-      print("user already online")
-      response = dumpsPacket(400, "User already online").encode('utf-8')
+      response = dumpsPacket(401, "User already online").encode('utf-8')
       self.clientSocket.sendall(response)
       # send signal to client to exit
       return True
     except UserTimedOutException as e:
-      print("user blocked")
-      response = dumpsPacket(404, "User blocked").encode('utf-8')
+      response = dumpsPacket(403, "Your account is blocked due to multiple login failures. Please try again later").encode('utf-8')
       self.clientSocket.sendall(response)
       # send signal to client to exit
       return True
+
+    # return false if no exception has been raised
     return False
 
 

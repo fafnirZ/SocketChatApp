@@ -15,9 +15,11 @@ all_users = []
 
 '''
 List<User>
-banned from logging on for next 30 seconds
+banned from logging on for next n seconds
+stores in user, banned time
 '''
 timedout_users = []
+
 
 
 '''
@@ -116,7 +118,7 @@ methods for timed out users
 def userTimedOut(user: tuple) -> bool:
   username, password = user
   for u in timedout_users:
-    if(u.checkCredentials(username, password)):
+    if(u.checkCredentials(username, password) and u.isTimedOut()):
       return True
   return False
 

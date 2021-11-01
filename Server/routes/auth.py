@@ -46,10 +46,6 @@ def loginHandler(contents:dict, socket) -> bool:
         raise UserNotFoundException
   
   except InvalidCredentialsException as e:
-    # todo handle exceptions and send back to client
-    response = dumpsPacket(401, "Invalid Credentials").encode('utf-8')
-    socket.sendall(response)
-
     # raise to higher level
     raise InvalidCredentialsException
     return

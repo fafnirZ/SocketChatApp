@@ -45,7 +45,10 @@ if __name__ == '__main__':
   authenticated: bool = False
   username = input("Username: ")
   try:
-    authenticated = loginHandler(clientSocket, username)
+    tries = 1
+    while(not authenticated and tries <= 3):
+      authenticated = loginHandler(clientSocket, username)
+      tries+=1
   except UserNotFoundException as e:
     authenticated = registerHandler(clientSocket, username)
 
@@ -54,6 +57,7 @@ if __name__ == '__main__':
     when the client is authenticated
   '''
   while authenticated:
+    print("Welcome to the greatest messaging application ever!")
     message = input()
     if message == 'whoelse':
       '''
