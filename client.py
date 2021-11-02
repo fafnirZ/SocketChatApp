@@ -10,10 +10,13 @@ import json
 
 # utils
 from util.packetParser import dumpsPacket, loadsPacket
+from util.Request import sendAndWait
+from util.recv import recv_timeout
+
 
 # Client Imports
 from Client.auth import loginHandler, registerHandler
-from Client.inputThread import InputThread
+from Client.broadcast import broadcastHandler
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -58,17 +61,29 @@ if __name__ == '__main__':
     when the client is authenticated
   '''
 
-  
-  while authenticated:
+  if authenticated:
     print("Welcome to the greatest messaging application ever!")
-    inputThread = InputThread(clientSocket)
-    '''
-      create new thread to listens to responses if there isnt message input
-    '''
-    inputThread.start()
+  while authenticated:
+    message = input()
+    
+    if message == 'whoelse':
+      '''
+        Sends this:
+        [whoelse] {}
+      '''
+      
+      response = sendAndWait(clientSocket, 'whoelse', {})
+      # no new line
+      print(response, end="")
+    if message.startswith('broadcast'):
+      '''
+        broadcast message
+      '''
+      broadcastHandler(clientSocket, message)
 
-    #response = clientSocket.recv(1024)
-  
-
+    # if response
+    response = recv_timeout(clientSocket)
+    if(response != ""):
+      print(response)
 
 clientSocket.close()

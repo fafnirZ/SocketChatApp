@@ -1,6 +1,7 @@
 import socket
 import json
 from .packetParser import dumpsPacket
+from .recv import recv_timeout
 
 '''
 Request abstraction functions

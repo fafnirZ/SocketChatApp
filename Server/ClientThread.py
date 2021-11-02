@@ -125,6 +125,7 @@ class ClientThread(Thread):
       elif code == "broadcast":
         contents = extractContentsToDict(contents)
         broadcastHandler(self, contents['message'])
+        self.clientSocket.sendall(dumpsPacket(200, "success").encode())
   
   
   def upgradeConnection(self, contents: dict):
