@@ -1,8 +1,8 @@
 import os
+import threading
 '''
 functions for interacting with credentials file
 '''
-
 
 def saveCredentials(user:str, password: str):
   '''

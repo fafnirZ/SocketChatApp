@@ -6,6 +6,8 @@ import time
 from Server.routes.auth import loginHandler, registerHandler
 from Server.routes.whoelse import whoelse
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
+from Server.routes.broadcast import broadcastHandler
+
 
 from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser
 
@@ -86,6 +88,7 @@ class ClientThread(Thread):
         try:
           logged = loginHandler(contents, self.clientSocket)
         except InvalidCredentialsException as e:
+          # checking for attempts
           self.attempts += 1
           if self.attempts >= self.max_attempts:
             # block user
@@ -118,7 +121,10 @@ class ClientThread(Thread):
         for u in userlist:
           self.clientSocket.sendall(u.encode()+"\n".encode())
           # self.clientSocket.sendall("\n".encode())
-
+      
+      elif code == "broadcast":
+        contents = extractContentsToDict(contents)
+        broadcastHandler(self, contents['message'])
   
   
   def upgradeConnection(self, contents: dict):
@@ -158,14 +164,16 @@ class ClientThread(Thread):
       checkUserLoggedIn(contents)
       checkUserTimedOut(contents)
     except UserAlreadyOnlineException as e:
-      response = dumpsPacket(401, "User already online").encode('utf-8')
+      response = dumpsPacket(403, "User already online").encode('utf-8')
       self.clientSocket.sendall(response)
       # send signal to client to exit
+      # 403 causes client to exit
       return True
     except UserTimedOutException as e:
       response = dumpsPacket(403, "Your account is blocked due to multiple login failures. Please try again later").encode('utf-8')
       self.clientSocket.sendall(response)
       # send signal to client to exit
+      # 403 causes client to exit
       return True
 
     # return false if no exception has been raised
