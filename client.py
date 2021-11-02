@@ -56,8 +56,9 @@ if __name__ == '__main__':
     this loop only starts running
     when the client is authenticated
   '''
-  while authenticated:
+  if authenticated:
     print("Welcome to the greatest messaging application ever!")
+  while authenticated:
     message = input()
     if message == 'whoelse':
       '''
@@ -65,7 +66,8 @@ if __name__ == '__main__':
         [whoelse] {}
       '''
       response = sendAndWait(clientSocket, 'whoelse', {})
-      print(response)
+      # no new line
+      print(response, end="")
 
 
 clientSocket.close()

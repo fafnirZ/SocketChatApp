@@ -10,4 +10,5 @@ def whoelse(thread) -> list:
   '''
   not_current_thread = list(filter(lambda t: t != thread, getOnlineUsers()))
   usernames = list(map(lambda t: t.user.getUsername(), not_current_thread))
+  print(usernames)
   return usernames

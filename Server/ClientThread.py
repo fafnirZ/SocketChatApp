@@ -7,7 +7,8 @@ from Server.routes.auth import loginHandler, registerHandler
 from Server.routes.whoelse import whoelse
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 
-from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut
+from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser
+
 from Server.User import User
 
 #utils
@@ -115,7 +116,8 @@ class ClientThread(Thread):
       elif code == "whoelse":
         userlist = whoelse(self)
         for u in userlist:
-          self.clientSocket.sendall(u.encode())
+          self.clientSocket.sendall(u.encode()+"\n".encode())
+          # self.clientSocket.sendall("\n".encode())
 
   
   
