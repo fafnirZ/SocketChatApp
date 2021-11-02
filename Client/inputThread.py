@@ -16,20 +16,20 @@ class InputThread(Thread):
     handling user input
   '''
   def run(self):
-    while True:
-      message = input()
+
+    message = input()
+    
+    if message == 'whoelse':
+      '''
+        Sends this:
+        [whoelse] {}
+      '''
       
-      if message == 'whoelse':
-        '''
-          Sends this:
-          [whoelse] {}
-        '''
-        
-        response = sendAndWait(self.clientSocket, 'whoelse', {})
-        # no new line
-        #print(response, end="")
-      if message.startswith('broadcast'):
-        '''
-          broadcast message
-        '''
-        broadcastHandler(self.clientSocket, message)
+      response = sendAndWait(self.clientSocket, 'whoelse', {})
+      # no new line
+      #print(response, end="")
+    if message.startswith('broadcast'):
+      '''
+        broadcast message
+      '''
+      broadcastHandler(self.clientSocket, message)

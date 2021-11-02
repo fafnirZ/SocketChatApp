@@ -59,7 +59,7 @@ if __name__ == '__main__':
   '''
 
   
-  if authenticated:
+  while authenticated:
     print("Welcome to the greatest messaging application ever!")
     inputThread = InputThread(clientSocket)
     '''
@@ -67,7 +67,8 @@ if __name__ == '__main__':
     '''
     inputThread.start()
 
-    # response = clientSocket.recv(1024)
+    #response = clientSocket.recv(1024)
+  
 
 
 clientSocket.close()
