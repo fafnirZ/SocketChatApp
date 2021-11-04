@@ -8,7 +8,3 @@ def broadcastHandler(clientSocket, command: str):
   
   response = sendAndWait(clientSocket, 'broadcast', {'message': message})
   code, contents = loadsPacket(response)
-  print(code)
-  print(contents)
-  if(code == "200"):
-    print(contents)

@@ -7,6 +7,7 @@
 from socket import *
 import sys
 import json
+import select
 
 # utils
 from util.packetParser import dumpsPacket, loadsPacket
@@ -64,26 +65,48 @@ if __name__ == '__main__':
   if authenticated:
     print("Welcome to the greatest messaging application ever!")
   while authenticated:
-    message = input()
-    
-    if message == 'whoelse':
-      '''
-        Sends this:
-        [whoelse] {}
-      '''
-      
-      response = sendAndWait(clientSocket, 'whoelse', {})
-      # no new line
-      print(response, end="")
-    if message.startswith('broadcast'):
-      '''
-        broadcast message
-      '''
-      broadcastHandler(clientSocket, message)
+    '''
+    event loop
+    '''
+    # this line is super important
+    readers, _, _ = select.select([sys.stdin, clientSocket], [], [])
 
-    # if response
-    response = recv_timeout(clientSocket)
-    if(response != ""):
-      print(response)
+    for reader in readers:
+
+      '''
+        if connection
+      '''
+      if reader is clientSocket:
+        # if response
+        response = clientSocket.recv(1048)
+        if(response != ""):
+          code, content = loadsPacket(response.decode())
+          if(code == "200" or code == "500"):
+            print(content)
+      else:
+        '''
+        if user input
+        '''
+        message = input()
+        if message == 'whoelse':
+          '''
+            Sends this:
+            [whoelse] {}
+          '''
+          
+          response = sendAndWait(clientSocket, 'whoelse', {})
+          # no new line
+          print(response, end="")
+        elif message.startswith('broadcast'):
+          '''
+            broadcast message
+          '''
+          broadcastHandler(clientSocket, message)
+        else:
+          print("Error invalid command")
+
+
+
+
 
 clientSocket.close()

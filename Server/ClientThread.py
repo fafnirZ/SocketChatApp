@@ -72,7 +72,7 @@ class ClientThread(Thread):
         contents = extractContentsToDict(contents)
         
         '''
-        only checks if there is a password in the contents
+          only checks if there is a password in the contents
           check if user is already online or blocked
           TODO handle automatically removing user from blocked
         '''
@@ -126,6 +126,7 @@ class ClientThread(Thread):
         contents = extractContentsToDict(contents)
         broadcastHandler(self, contents['message'])
         self.clientSocket.sendall(dumpsPacket(200, "success").encode())
+
   
   
   def upgradeConnection(self, contents: dict):
