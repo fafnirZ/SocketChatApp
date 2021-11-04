@@ -10,7 +10,6 @@ from Server.routes.broadcast import broadcastHandler
 
 
 from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser
-
 from Server.User import User
 
 #utils
@@ -18,7 +17,7 @@ from util.packetParser import dumpsPacket
 
 
 # exceptions from root dir
-from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException,UserTimedOutException, InvalidCredentialsException
+from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException, UserTimedOutException, InvalidCredentialsException
 from exceptions.InputExceptions import InvalidInputException
 
 # utils from root dir
@@ -57,6 +56,9 @@ class ClientThread(Thread):
       if message == '':
         self.clientActive = False
         print("===== the user disconnected - ", self.clientAddress)
+        
+        # broadcasts that the user has logged
+        broadcastHandler(self, self.user.getUsername()+" has logged out")
 
         # removes current thread from list of threads in online_users
         setUserOffline(self)
@@ -127,7 +129,7 @@ class ClientThread(Thread):
       
       elif code == "broadcast":
         contents = extractContentsToDict(contents)
-        broadcastHandler(self, contents['message'])
+        broadcastHandler(self, self.user.getUsername() + ": " + contents['message'])
         self.clientSocket.sendall(dumpsPacket(200, "success").encode())
 
   
@@ -163,6 +165,9 @@ class ClientThread(Thread):
       self.user = user
       # appending this thread to online_users
       addOnlineUsers(self)
+    
+    # presence broadcast for login
+    broadcastHandler(self, self.user.getUsername()+ " has logged in")
 
   def checkAuthExceptions(self, contents:dict) -> bool:
     try:
