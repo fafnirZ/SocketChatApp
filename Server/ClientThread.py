@@ -113,6 +113,9 @@ class ClientThread(Thread):
         contents = extractContentsToDict(contents)
         logged = registerHandler(contents, self.clientSocket)
 
+        response = dumpsPacket(200, "success").encode('utf-8')
+        self.clientSocket.sendall(response)
+
         if logged:
           self.upgradeConnection(contents)
 

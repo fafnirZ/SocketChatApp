@@ -64,6 +64,10 @@ if __name__ == '__main__':
 
   if authenticated:
     print("Welcome to the greatest messaging application ever!")
+  else:
+    exit(0)
+
+  
   while authenticated:
     '''
     event loop
