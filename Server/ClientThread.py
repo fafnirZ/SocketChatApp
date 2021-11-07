@@ -7,6 +7,7 @@ from Server.routes.auth import loginHandler, registerHandler
 from Server.routes.whoelse import whoelse
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 from Server.routes.broadcast import broadcastHandler
+from Server.timer import Timer
 
 
 from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser
@@ -37,11 +38,16 @@ class ClientThread(Thread):
     # initialises failed attempts as 0
     self.attempts = 0
 
+    # initialise countdown inactivity timer
+    self.timer = Timer(callback=self.clientCleanUp)
+
     print('=== New connection for: ', clientAddress)
     self.clientActive = True
   
   def run(self):
     message = ''
+    # start inactivity timer
+    self.timer.start()
 
     while self.clientActive:
       data = self.clientSocket.recv(1024)
@@ -54,14 +60,7 @@ class ClientThread(Thread):
       client is offline
       '''
       if message == '':
-        self.clientActive = False
-        print("===== the user disconnected - ", self.clientAddress)
-        
-        # broadcasts that the user has logged
-        broadcastHandler(self, self.user.getUsername()+" has logged out")
-
-        # removes current thread from list of threads in online_users
-        setUserOffline(self)
+        self.clientCleanUp()
         break
 
       '''
@@ -71,46 +70,11 @@ class ClientThread(Thread):
       (code, contents) = loadsPacket(message)
 
       if code == "login":
-        contents = extractContentsToDict(contents)
-        
-        '''
-          only checks if there is a password in the contents
-          check if user is already online or blocked
-          TODO handle automatically removing user from blocked
-        '''
-        if('password' in contents):
-          err = self.checkAuthExceptions(contents)
-          if(err):
-            # break or exit
-            break
-
-        '''
-        handle invalid credentials
-        '''
-        try:
-          logged = loginHandler(contents, self.clientSocket)
-        except InvalidCredentialsException as e:
-          # checking for attempts
-          self.attempts += 1
-          if self.attempts >= self.max_attempts:
-            # block user
-            user = User(contents['user'], contents['password'])
-            user.setBannedTime(time.time())
-            addUserTimeOut(user)
-
-            # send to frontend
-            response = dumpsPacket(403, "Invalid Password. Your account has been blocked. Please try again later").encode('utf-8')
-            self.clientSocket.sendall(response)
-          else:
-            # todo handle exceptions and send back to client
-            response = dumpsPacket(401, "Invalid Credentials").encode('utf-8')
-            self.clientSocket.sendall(response)
-
-
-        # since logged in, that means username and password is provided correctly
-        if logged:
-          self.upgradeConnection(contents)
+        err = self.login(contents)
+        if err:
+          break
       
+
       elif code == "register":
         contents = extractContentsToDict(contents)
         logged = registerHandler(contents, self.clientSocket)
@@ -133,7 +97,9 @@ class ClientThread(Thread):
         self.clientSocket.sendall(dumpsPacket(200, "success").encode())
 
   
-  
+  '''
+    upgrades connection
+  '''
   def upgradeConnection(self, contents: dict):
 
     # args
@@ -169,6 +135,10 @@ class ClientThread(Thread):
     # presence broadcast for login
     broadcastHandler(self, self.user.getUsername()+ " has logged in")
 
+  '''
+    helper function for checking and handling the exceptions
+    for user authentication
+  '''
   def checkAuthExceptions(self, contents:dict) -> bool:
     try:
       checkUserLoggedIn(contents)
@@ -189,10 +159,82 @@ class ClientThread(Thread):
     # return false if no exception has been raised
     return False
 
+  '''
+    cleanup function
+  '''
+  def clientCleanUp(self):
+    self.clientActive = False
+    print("===== the user disconnected - ", self.clientAddress)
+    
+    # broadcasts that the user has logged
+    broadcastHandler(self, self.user.getUsername()+" has logged out")
+
+    # removes current thread from list of threads in online_users
+    setUserOffline(self)
+
+    self.clientSocket.sendall(dumpsPacket("FIN", "Your client has been closed due to inactivity").encode('utf-8'))
 
 
+  '''
+    decorator for resetting
+    timer after each valid user route call
+  '''
+  def resetTimer(fnc, *args):
+    def wrapper(self, *args):
+      fnc(*args)
+      print("after")
+    return wrapper
 
 
+  '''
+    route methods
+  '''
+
+  def login(self, contents) -> bool:
+    contents = extractContentsToDict(contents)
+        
+    '''
+      only checks if there is a password in the contents
+      check if user is already online or blocked
+      TODO handle automatically removing user from blocked
+    '''
+    if('password' in contents):
+      err = self.checkAuthExceptions(contents)
+      if(err):
+        # break or exit
+        return True
+
+    '''
+    handle invalid credentials
+    '''
+    try:
+      '''
+      goes into the route handler
+      '''
+      logged = loginHandler(contents, self.clientSocket)
+    except InvalidCredentialsException as e:
+      # checking for attempts
+      self.attempts += 1
+      if self.attempts >= self.max_attempts:
+        # block user
+        user = User(contents['user'], contents['password'])
+        user.setBannedTime(time.time())
+        addUserTimeOut(user)
+
+        # send to frontend
+        response = dumpsPacket(403, "Invalid Password. Your account has been blocked. Please try again later").encode('utf-8')
+        self.clientSocket.sendall(response)
+      else:
+        # todo handle exceptions and send back to client
+        response = dumpsPacket(401, "Invalid Credentials").encode('utf-8')
+        self.clientSocket.sendall(response)
+
+
+    # since logged in, that means username and password is provided correctly
+    if logged:
+      self.upgradeConnection(contents)
+
+    return False
 
 
 

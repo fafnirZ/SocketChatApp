@@ -87,9 +87,13 @@ if __name__ == '__main__':
           code, content = loadsPacket(response.decode())
           if(code == "200" or code == "500"):
             print(content)
+          
+          if(code == "FIN"):
+            print(content)
+            exit(0)
       else:
         '''
-        if user input
+          if user input
         '''
         message = input()
         if message == 'whoelse':
@@ -108,6 +112,7 @@ if __name__ == '__main__':
           broadcastHandler(clientSocket, message)
         else:
           print("Error invalid command")
+        
 
 
 
