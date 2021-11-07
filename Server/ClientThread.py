@@ -76,25 +76,14 @@ class ClientThread(Thread):
       
 
       elif code == "register":
-        contents = extractContentsToDict(contents)
-        logged = registerHandler(contents, self.clientSocket)
-
-        response = dumpsPacket(200, "success").encode('utf-8')
-        self.clientSocket.sendall(response)
-
-        if logged:
-          self.upgradeConnection(contents)
+        self.register(contents)
 
       elif code == "whoelse":
-        userlist = whoelse(self)
-        for u in userlist:
-          self.clientSocket.sendall(u.encode()+"\n".encode())
-          # self.clientSocket.sendall("\n".encode())
+        self.whoelse(contents)
       
       elif code == "broadcast":
-        contents = extractContentsToDict(contents)
-        broadcastHandler(self, self.user.getUsername() + ": " + contents['message'])
-        self.clientSocket.sendall(dumpsPacket(200, "success").encode())
+        self.broadcast(contents)
+
 
   
   '''
@@ -172,6 +161,7 @@ class ClientThread(Thread):
     # removes current thread from list of threads in online_users
     setUserOffline(self)
 
+    # send a packet to client to kick client due to inactivity
     self.clientSocket.sendall(dumpsPacket("FIN", "Your client has been closed due to inactivity").encode('utf-8'))
 
 
@@ -179,17 +169,18 @@ class ClientThread(Thread):
     decorator for resetting
     timer after each valid user route call
   '''
-  def resetTimer(fnc, *args):
-    def wrapper(self, *args):
-      fnc(*args)
-      print("after")
+  def resetTimer(fnc):
+    def wrapper(self,*args):
+      fnc(self,*args)
+      self.timer.reset()
+      print('inactivity reset')
     return wrapper
 
 
   '''
     route methods
   '''
-
+  @resetTimer
   def login(self, contents) -> bool:
     contents = extractContentsToDict(contents)
         
@@ -237,13 +228,29 @@ class ClientThread(Thread):
     return False
 
 
+  @resetTimer
+  def register(self, contents):
+    contents = extractContentsToDict(contents)
+    logged = registerHandler(contents, self.clientSocket)
 
+    response = dumpsPacket(200, "success").encode('utf-8')
+    self.clientSocket.sendall(response)
 
+    if logged:
+      self.upgradeConnection(contents)
 
-        
-
-
-
-    
+  @resetTimer
+  def whoelse(self, contents):
+    userlist = whoelse(self)
+    for u in userlist:
+      self.clientSocket.sendall(u.encode()+"\n".encode())
+      # self.clientSocket.sendall("\n".encode())
+  
+  
+  @resetTimer
+  def broadcast(self, contents):
+    contents = extractContentsToDict(contents)
+    broadcastHandler(self, self.user.getUsername() + ": " + contents['message'])
+    self.clientSocket.sendall(dumpsPacket(200, "success").encode())
 
 

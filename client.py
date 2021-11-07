@@ -90,6 +90,7 @@ if __name__ == '__main__':
           
           if(code == "FIN"):
             print(content)
+            clientSocket.close()
             exit(0)
       else:
         '''
