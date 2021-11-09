@@ -108,13 +108,15 @@ if __name__ == '__main__':
           '''
           whoelse since
           '''
-          #response = sendAndWait(clientSocket, 'whoelsesince', )
+          t = ''.join(message.split(" ")[1:])
+          post(clientSocket, 'whoelsesince', {'time': t})
 
         elif message.startswith('broadcast'):
           '''
             broadcast message
           '''
           broadcastHandler(clientSocket, message)
+
         else:
           print("Error invalid command")
         

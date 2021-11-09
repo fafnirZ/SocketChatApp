@@ -5,6 +5,7 @@ import time
 
 from Server.routes.auth import loginHandler, registerHandler
 from Server.routes.whoelse import whoelse
+from Server.routes.whoelsesince import whoelsesince
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 from Server.routes.broadcast import broadcastHandler
 from Server.timer import Timer
@@ -129,7 +130,7 @@ class ClientThread(Thread):
       addOnlineUsers(self)
     
     # presence broadcast for login
-    broadcastHandler(self, self.user.getUsername()+ " has logged in")
+    broadcastHandler(self, self.user.getUsername()+ " has logged in\n")
 
   '''
     helper function for checking and handling the exceptions
@@ -221,11 +222,11 @@ class ClientThread(Thread):
         addUserTimeOut(user)
 
         # send to frontend
-        response = dumpsPacket(403, "Invalid Password. Your account has been blocked. Please try again later").encode('utf-8')
+        response = dumpsPacket(403, "Invalid Password. Your account has been blocked. Please try again later\n").encode('utf-8')
         self.clientSocket.sendall(response)
       else:
         # todo handle exceptions and send back to client
-        response = dumpsPacket(401, "Invalid Credentials").encode('utf-8')
+        response = dumpsPacket(401, "Invalid Credentials\n").encode('utf-8')
         self.clientSocket.sendall(response)
 
 
@@ -240,7 +241,7 @@ class ClientThread(Thread):
   def register(self, contents):
     contents = extractContentsToDict(contents)
     logged = registerHandler(contents, self.clientSocket)
-    response = dumpsPacket(200, "success").encode('utf-8')
+    response = dumpsPacket(200, None).encode('utf-8')
     self.clientSocket.sendall(response)
 
     if logged:
@@ -255,13 +256,14 @@ class ClientThread(Thread):
       self.clientSocket.sendall(response)
   
   def whoelsesince(self, contents):
-    pass
+    contents = extractContentsToDict(contents)
+    whoelsesince(self, contents['time'])
 
   
   @resetTimer
   def broadcast(self, contents):
     contents = extractContentsToDict(contents)
     broadcastHandler(self, self.user.getUsername() + ": " + contents['message'])
-    self.clientSocket.sendall(dumpsPacket(200, "success").encode())
+    self.clientSocket.sendall(dumpsPacket(200, None).encode())
 
 
