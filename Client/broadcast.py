@@ -1,4 +1,4 @@
-from util.Request import sendAndWait
+from util.Request import post
 from util.packetParser import loadsPacket
 
 def broadcastHandler(clientSocket, command: str):
@@ -6,5 +6,4 @@ def broadcastHandler(clientSocket, command: str):
   #extracts message from [broadcast {message}]
   message = " ".join(command[1:])
   
-  response = sendAndWait(clientSocket, 'broadcast', {'message': message})
-  code, contents = loadsPacket(response)
+  post(clientSocket, 'broadcast', {'message': message})

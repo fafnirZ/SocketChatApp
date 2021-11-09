@@ -11,7 +11,7 @@ import select
 
 # utils
 from util.packetParser import dumpsPacket, loadsPacket
-from util.Request import sendAndWait
+from util.Request import post, sendAndWait
 from util.recv import recv_timeout
 
 
@@ -83,10 +83,10 @@ if __name__ == '__main__':
       if reader is clientSocket:
         # if response
         response = clientSocket.recv(1048)
-        if(response != ""):
+        if(response != "" and response != None):
           code, content = loadsPacket(response.decode())
           if(code == "200" or code == "500"):
-            print(content)
+            print(content, end="")
           
           if(code == "FIN"):
             print(content)
@@ -102,10 +102,14 @@ if __name__ == '__main__':
             Sends this:
             [whoelse] {}
           '''
-          
-          response = sendAndWait(clientSocket, 'whoelse', {})
-          # no new line
-          print(response, end="")
+          post(clientSocket, 'whoelse', {})
+
+        elif message.startswith('whoelsesince'):
+          '''
+          whoelse since
+          '''
+          #response = sendAndWait(clientSocket, 'whoelsesince', )
+
         elif message.startswith('broadcast'):
           '''
             broadcast message

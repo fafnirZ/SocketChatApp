@@ -8,6 +8,7 @@ from Server.routes.whoelse import whoelse
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 from Server.routes.broadcast import broadcastHandler
 from Server.timer import Timer
+from Server.log import logUser
 
 
 from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser
@@ -43,6 +44,9 @@ class ClientThread(Thread):
 
     print('=== New connection for: ', clientAddress)
     self.clientActive = True
+
+    # adding user login to log history
+    logUser(self)
   
   def run(self):
     message = ''
@@ -80,6 +84,9 @@ class ClientThread(Thread):
 
       elif code == "whoelse":
         self.whoelse(contents)
+
+      elif code == "whoelsesince":
+        self.whoelsesince(contents)
       
       elif code == "broadcast":
         self.broadcast(contents)
@@ -171,6 +178,7 @@ class ClientThread(Thread):
   '''
   def resetTimer(fnc):
     def wrapper(self,*args):
+      self.timer.reset()
       fnc(self,*args)
       self.timer.reset()
       print('inactivity reset')
@@ -232,7 +240,6 @@ class ClientThread(Thread):
   def register(self, contents):
     contents = extractContentsToDict(contents)
     logged = registerHandler(contents, self.clientSocket)
-
     response = dumpsPacket(200, "success").encode('utf-8')
     self.clientSocket.sendall(response)
 
@@ -243,9 +250,13 @@ class ClientThread(Thread):
   def whoelse(self, contents):
     userlist = whoelse(self)
     for u in userlist:
-      self.clientSocket.sendall(u.encode()+"\n".encode())
-      # self.clientSocket.sendall("\n".encode())
+      resp = u + "\n"
+      response = dumpsPacket(200, resp).encode('utf-8')
+      self.clientSocket.sendall(response)
   
+  def whoelsesince(self, contents):
+    pass
+
   
   @resetTimer
   def broadcast(self, contents):

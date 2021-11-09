@@ -3,17 +3,14 @@ import json
 from .packetParser import dumpsPacket
 from .recv import recv_timeout
 
-'''
-Request abstraction functions
-abstracts away the socket stuff
-'''
+
 
 def sendAndWait(socket, route, data):
-  '''
-  sends request
-  waits for response 
-  then returns response object
-  '''
+
+  #sends request
+  #waits for response 
+  #then returns response object
+
   parsedRequest = dumpsPacket(route, json.dumps(data)).encode('utf-8')
   
   # send socket
@@ -25,3 +22,8 @@ def sendAndWait(socket, route, data):
   return response.decode()
 
 
+def post(socket, route, data):
+  parsedRequest = dumpsPacket(route, json.dumps(data)).encode('utf-8')
+  
+  # send socket
+  socket.sendall(parsedRequest)
