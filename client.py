@@ -73,7 +73,7 @@ if __name__ == '__main__':
     event loop
     '''
     # this line is super important
-    readers, _, _ = select.select([sys.stdin, clientSocket], [], [])
+    readers, _, _ = select.select([clientSocket, sys.stdin], [], [])
 
     for reader in readers:
 
@@ -84,11 +84,13 @@ if __name__ == '__main__':
         # if response
         response = clientSocket.recv(1048)
         if(response != "" and response != None):
+
           code, content = loadsPacket(response.decode())
+
           if(code == "200" or code == "500"):
             print(content, end="")
           
-          if(code == "FIN"):
+          elif(code == "FIN"):
             print(content)
             clientSocket.close()
             exit(0)
@@ -106,7 +108,7 @@ if __name__ == '__main__':
 
         elif message.startswith('whoelsesince'):
           '''
-          whoelse since
+            whoelse since
           '''
           t = ''.join(message.split(" ")[1:])
           post(clientSocket, 'whoelsesince', {'time': t})

@@ -58,8 +58,6 @@ class ClientThread(Thread):
       data = self.clientSocket.recv(1024)
       message = data.decode()
 
-      # print(f"message: {message}")
-
       '''
       if message from client is empty
       client is offline
@@ -164,7 +162,7 @@ class ClientThread(Thread):
     print("===== the user disconnected - ", self.clientAddress)
     
     # broadcasts that the user has logged
-    broadcastHandler(self, self.user.getUsername()+" has logged out")
+    broadcastHandler(self, self.user.getUsername()+" has logged out\n")
 
     # removes current thread from list of threads in online_users
     setUserOffline(self)
@@ -229,7 +227,6 @@ class ClientThread(Thread):
         response = dumpsPacket(401, "Invalid Credentials\n").encode('utf-8')
         self.clientSocket.sendall(response)
 
-
     # since logged in, that means username and password is provided correctly
     if logged:
       self.upgradeConnection(contents)
@@ -267,7 +264,7 @@ class ClientThread(Thread):
   @resetTimer
   def broadcast(self, contents):
     contents = extractContentsToDict(contents)
-    broadcastHandler(self, self.user.getUsername() + ": " + contents['message'])
-    self.clientSocket.sendall(dumpsPacket(200, None).encode())
+    broadcastHandler(self, self.user.getUsername() + ": " + contents['message']+"\n")
+    self.clientSocket.sendall(dumpsPacket(200, "").encode())
 
 
