@@ -255,10 +255,14 @@ class ClientThread(Thread):
       response = dumpsPacket(200, resp).encode('utf-8')
       self.clientSocket.sendall(response)
   
+  @resetTimer
   def whoelsesince(self, contents):
     contents = extractContentsToDict(contents)
-    whoelsesince(self, contents['time'])
-
+    userlist = whoelsesince(self, contents)
+    for u in userlist:
+      resp = u + "\n"
+      response = dumpsPacket(200, resp).encode('utf-8')
+      self.clientSocket.sendall(response)
   
   @resetTimer
   def broadcast(self, contents):
