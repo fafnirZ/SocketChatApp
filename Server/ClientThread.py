@@ -13,7 +13,7 @@ from Server.timer import Timer
 from Server.log import logUser
 
 
-from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser, online_users
+from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser, online_users, all_users
 from Server.User import User
 
 #utils
@@ -84,7 +84,9 @@ class ClientThread(Thread):
       '''
       if message == '':
         self.clientCleanUp()
- 
+
+        # terminate timer
+        self.timer.terminate()
         break
 
       '''
@@ -200,6 +202,8 @@ class ClientThread(Thread):
     setUserOffline(self)
 
     print('cleaning')
+    print(online_users)
+    print(all_users)
     # send a packet to client to kick client due to inactivity
     return dumpsPacket("FIN", "Your client has been closed due to inactivity").encode('utf-8')
 
