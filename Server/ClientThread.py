@@ -309,6 +309,7 @@ class ClientThread(Thread):
     should occur after user has upgraded connection
   '''
   def deQueueMessages(self):
+    response = ""
     try:
       msg = self.user.dequeueMessage()
       while(msg):
@@ -319,5 +320,6 @@ class ClientThread(Thread):
         msg = self.user.dequeueMessage()
     except:
       print("dequeuing messages sent when user was offline")
+    
 
 

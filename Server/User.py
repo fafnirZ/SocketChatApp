@@ -43,4 +43,4 @@ class User():
     self.__messageQueue.append(message)
   
   def dequeueMessage(self):
-    self.__messageQueue.pop(0)
+    return self.__messageQueue.pop(0)
