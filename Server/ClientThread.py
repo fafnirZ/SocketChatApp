@@ -13,7 +13,7 @@ from Server.timer import Timer
 from Server.log import logUser
 
 
-from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser
+from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser, online_users
 from Server.User import User
 
 #utils
@@ -28,6 +28,25 @@ from exceptions.InputExceptions import InvalidInputException
 from util.packetParser import loadsPacket, extractContentsToDict
 
 class ClientThread(Thread):
+
+  '''
+    decorator for resetting
+    timer after each valid user route call
+  '''
+  def resetTimer(fnc):
+    def wrapper(self,*args):
+      self.timer.reset()
+      fnc(self,*args)
+      self.timer.reset()
+      print('inactivity reset')
+    return wrapper
+
+
+  def sendToClient(fnc):
+    def wrapper(self, *args):
+      resp = fnc(self, *args)
+      self.clientSocket.sendall(resp)
+    return wrapper
   
   def __init__(self, clientAddress, clientSocket):
     # super()
@@ -41,9 +60,6 @@ class ClientThread(Thread):
     # initialises failed attempts as 0
     self.attempts = 0
 
-    # initialise countdown inactivity timer
-    self.timer = Timer(callback=self.clientCleanUp)
-
     print('=== New connection for: ', clientAddress)
     self.clientActive = True
 
@@ -51,6 +67,9 @@ class ClientThread(Thread):
     logUser(self)
   
   def run(self):
+    # initialise countdown inactivity timer
+    self.timer = Timer(callback=self.clientCleanUp)
+
     message = ''
     # start inactivity timer
     self.timer.start()
@@ -65,6 +84,7 @@ class ClientThread(Thread):
       '''
       if message == '':
         self.clientCleanUp()
+ 
         break
 
       '''
@@ -129,10 +149,17 @@ class ClientThread(Thread):
       # assigning user to this thread, to use for future method forwarding
       self.user = user
       # appending this thread to online_users
+
+      print(online_users)
+      print('pre online users branch')
       addOnlineUsers(self)
+      print(online_users)
     
     # presence broadcast for login
     broadcastHandler(self, self.user.getUsername()+ " has logged in\n")
+
+    # dequeue any messages that were sent to user while offline
+    self.deQueueMessages()
 
   '''
     helper function for checking and handling the exceptions
@@ -161,6 +188,7 @@ class ClientThread(Thread):
   '''
     cleanup function
   '''
+  @sendToClient
   def clientCleanUp(self):
     self.clientActive = False
     print("===== the user disconnected - ", self.clientAddress)
@@ -171,22 +199,9 @@ class ClientThread(Thread):
     # removes current thread from list of threads in online_users
     setUserOffline(self)
 
+    print('cleaning')
     # send a packet to client to kick client due to inactivity
-    self.clientSocket.sendall(dumpsPacket("FIN", "Your client has been closed due to inactivity").encode('utf-8'))
-
-
-  '''
-    decorator for resetting
-    timer after each valid user route call
-  '''
-  def resetTimer(fnc):
-    def wrapper(self,*args):
-      self.timer.reset()
-      fnc(self,*args)
-      self.timer.reset()
-      print('inactivity reset')
-    return wrapper
-
+    return dumpsPacket("FIN", "Your client has been closed due to inactivity").encode('utf-8')
 
   '''
     route methods
@@ -234,49 +249,71 @@ class ClientThread(Thread):
     # since logged in, that means username and password is provided correctly
     if logged:
       self.upgradeConnection(contents)
-
     return False
 
 
   @resetTimer
+  @sendToClient
   def register(self, contents):
     contents = extractContentsToDict(contents)
     logged = registerHandler(contents, self.clientSocket)
     response = dumpsPacket(200, None).encode('utf-8')
-    self.clientSocket.sendall(response)
 
     if logged:
       self.upgradeConnection(contents)
+    
+    return response
 
   @resetTimer
+  @sendToClient
   def whoelse(self, contents):
     userlist = whoelse(self)
+    response = ""
     for u in userlist:
       resp = u + "\n"
-      response = dumpsPacket(200, resp).encode('utf-8')
-      self.clientSocket.sendall(response)
+      response += resp
+    return dumpsPacket(200, response).encode('utf-8')
+
   
   @resetTimer
+  @sendToClient
   def whoelsesince(self, contents):
     contents = extractContentsToDict(contents)
     userlist = whoelsesince(self, contents)
+    response = ""
     for u in userlist:
       resp = u + "\n"
-      response = dumpsPacket(200, resp).encode('utf-8')
-      self.clientSocket.sendall(response)
+      response += resp
+    return dumpsPacket(200, response).encode('utf-8')
   
   @resetTimer
+  @sendToClient
   def broadcast(self, contents):
     contents = extractContentsToDict(contents)
     broadcastHandler(self, self.user.getUsername() + ": " + contents['message']+"\n")
-    self.clientSocket.sendall(dumpsPacket(200, "").encode())
+    return dumpsPacket(200, "").encode()
 
   @resetTimer
+  @sendToClient
   def message(self, contents):
     contents = extractContentsToDict(contents)
-
     messageHandler(self, contents)
     # let original client know it is done
-    self.clientSocket.sendall(dumpsPacket(200, "").encode())
+    return dumpsPacket(200, "").encode()
+
+  '''
+    should occur after user has upgraded connection
+  '''
+  def deQueueMessages(self):
+    try:
+      msg = self.user.dequeueMessage()
+      while(msg):
+        # send to frontend
+        print(msg)
+        self.clientSocket.sendall(msg.encode('utf-8'))
+        # get more messages
+        msg = self.user.dequeueMessage()
+    except:
+      print("dequeuing messages sent when user was offline")
 
 

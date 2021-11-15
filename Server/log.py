@@ -1,16 +1,11 @@
 import time
-import threading
+from util.mutex import mutex
 
 '''
 log history containing clientThreads
 List<ClientThread>
 '''
 log = []
-
-'''
-mutex
-'''
-mutex = threading.Lock()
 
 def getLog():
   return log

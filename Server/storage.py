@@ -1,4 +1,4 @@
-import threading
+from util.mutex import mutex
 
 '''
 global storage for data structure i.e. dictionaries/arrays
@@ -23,15 +23,6 @@ stores in user, banned time
 timedout_users = []
 
 
-'''
-helper functions
-'''
-
-'''
-mutex
-'''
-mutex = threading.Lock()
-
 
 
 def userExists(user: tuple) -> bool:
@@ -45,8 +36,17 @@ def userExists(user: tuple) -> bool:
       mutex.release()
       return True
   mutex.release()
-  
   return False
+
+
+def getUserByName(username: str):
+  mutex.acquire()
+  for u in all_users:
+    if u.getUsername() == username:
+      mutex.release()
+      return u
+  mutex.release()
+  return None
 
 
 def userOnline(user: tuple) -> bool:
@@ -77,29 +77,30 @@ Methods for online_users
 '''
 
 def getOnlineUsers():
-  mutex.acquire()
-  global online_users
-  mutex.release()
   return online_users
+
+'''
+ TODO kinda broken
+'''
 
 def addOnlineUsers(thread):
   '''
   Adding new ClientThread object
   to online_users
   '''
-  mutex.acquire()
-  global online_users
-  mutex.release()
   online_users.append(thread)
+
 
 def setUserOffline(thread):
   '''
   Removes ClientThread from online_users array
   '''
-  mutex.acquire()
   global online_users
-  online_users = list(filter(lambda x: x != thread, online_users))
-  mutex.release()
+  #online_users = list(filter(lambda x: x != thread, online_users))
+  for i, user  in enumerate(online_users):
+    if user == thread:
+      online_users.pop(i)
+
 
 
 
@@ -107,9 +108,7 @@ def setUserOffline(thread):
 Methods for all_users
 '''
 def getAllusers():
-  mutex.acquire()
   global all_users
-  mutex.release()
   return all_users
 
 

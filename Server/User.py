@@ -1,7 +1,6 @@
 import time
 '''
 This class is the main user class
-TODO 
 
 '''
 
@@ -10,6 +9,12 @@ class User():
     self.__username = username
     self.__password = password
     self.__bannedTime = None
+
+    '''
+      will store in dumpsPacket format
+      [200] _sender: _message
+    '''
+    self.__messageQueue = []
   
   def getUsername(self):
     return self.__username
@@ -33,3 +38,9 @@ class User():
         print(self.__bannedTime)
         return True
     return False
+  
+  def queueMessage(self, message):
+    self.__messageQueue.append(message)
+  
+  def dequeueMessage(self):
+    self.__messageQueue.pop(0)
