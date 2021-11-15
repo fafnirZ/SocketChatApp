@@ -73,7 +73,7 @@ if __name__ == '__main__':
     event loop
     '''
     # this line is super important
-    readers, _, _ = select.select([clientSocket, sys.stdin], [], [])
+    readers, _, _ = select.select([sys.stdin,clientSocket], [], [])
 
     for reader in readers:
 
