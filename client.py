@@ -18,6 +18,7 @@ from util.recv import recv_timeout
 # Client Imports
 from Client.auth import loginHandler, registerHandler
 from Client.broadcast import broadcastHandler
+from Client.message import messageHandler
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -118,7 +119,17 @@ if __name__ == '__main__':
             broadcast message
           '''
           broadcastHandler(clientSocket, message)
+        elif message.startswith('message'):
+          '''
+            send message
+          '''
+          messageHandler(clientSocket, message)
+        
+        elif message.startswith('block'):
+          # TODO block
+          pass
 
+        
         else:
           print("Error invalid command")
         

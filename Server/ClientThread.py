@@ -8,6 +8,7 @@ from Server.routes.whoelse import whoelse
 from Server.routes.whoelsesince import whoelsesince
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 from Server.routes.broadcast import broadcastHandler
+from Server.routes.message import messageHandler
 from Server.timer import Timer
 from Server.log import logUser
 
@@ -89,6 +90,9 @@ class ClientThread(Thread):
       
       elif code == "broadcast":
         self.broadcast(contents)
+      
+      elif code == "message":
+        self.message(contents)
 
 
   
@@ -265,6 +269,14 @@ class ClientThread(Thread):
   def broadcast(self, contents):
     contents = extractContentsToDict(contents)
     broadcastHandler(self, self.user.getUsername() + ": " + contents['message']+"\n")
+    self.clientSocket.sendall(dumpsPacket(200, "").encode())
+
+  @resetTimer
+  def message(self, contents):
+    contents = extractContentsToDict(contents)
+
+    messageHandler(self, contents)
+    # let original client know it is done
     self.clientSocket.sendall(dumpsPacket(200, "").encode())
 
 
