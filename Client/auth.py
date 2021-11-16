@@ -21,10 +21,10 @@ def loginHandler(clientSocket, username) -> bool:
     elif(code == "401"):
       # TODO login failed retry
       # raise exception and allow for another try
-      print(contents)
+      print(contents, end='')
     elif(code == "403"):
       # todo blocked
-      print(contents)
+      print(contents, end='')
       exit(0)
   elif(code == "400"):
     # TODO username not found register username

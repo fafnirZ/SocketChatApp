@@ -28,7 +28,6 @@ def messageHandler(clientThread, contents):
       store = dumpsPacket(200, current_user+': '+message+"\n")
       user.queueMessage(store)
 
-
   else:
     for user in target_user:
       print(dumpsPacket(200,message))

@@ -180,13 +180,13 @@ class ClientThread(Thread):
       checkUserLoggedIn(contents)
       checkUserTimedOut(contents)
     except UserAlreadyOnlineException as e:
-      response = dumpsPacket(403, "User already online").encode('utf-8')
+      response = dumpsPacket(403, "User already online\n").encode('utf-8')
       self.clientSocket.sendall(response)
       # send signal to client to exit
       # 403 causes client to exit
       return True
     except UserTimedOutException as e:
-      response = dumpsPacket(403, "Your account is blocked due to multiple login failures. Please try again later").encode('utf-8')
+      response = dumpsPacket(403, "Your account is blocked due to multiple login failures. Please try again later\n").encode('utf-8')
       self.clientSocket.sendall(response)
       # send signal to client to exit
       # 403 causes client to exit
@@ -213,9 +213,6 @@ class ClientThread(Thread):
     # removes current thread from list of threads in online_users
     setUserOffline(self)
 
-    print('cleaning')
-    print(online_users)
-    print(all_users)
     # send a packet to client to kick client due to inactivity
     return dumpsPacket("FIN", "Your client has been closed due to inactivity").encode('utf-8')
 
@@ -225,6 +222,7 @@ class ClientThread(Thread):
   @resetTimer
   def login(self, contents) -> bool:
     contents = extractContentsToDict(contents)
+    logged = False
         
     '''
       only checks if there is a password in the contents
