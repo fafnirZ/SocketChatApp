@@ -1,7 +1,8 @@
 import threading
+from Server.config import TIMEOUT
 
 class Timer(threading.Thread):
-  def __init__(self, timeout=15, callback=None):
+  def __init__(self, timeout=TIMEOUT, callback=None):
     threading.Thread.__init__(self)
     self.timeout = timeout
 

@@ -233,8 +233,8 @@ class ClientThread(Thread):
         
     '''
       only checks if there is a password in the contents
-      check if user is already online or blocked
-      TODO handle automatically removing user from blocked
+      check if user is already online or banned
+      TODO handle automatically removing user from banned
     '''
     if('password' in contents):
       err = self.checkAuthExceptions(contents)
@@ -321,7 +321,9 @@ class ClientThread(Thread):
     try:
       messageHandler(self, contents)
     except UserHasBeenBlockedException:
-      return dumpsPacket(400, "Your message could not be delivered as the recipient has blocked you\n").encode()
+      return dumpsPacket(400, "Error. Your message could not be delivered as the recipient has blocked you\n").encode()
+    except UserNotFoundException:
+      return dumpsPacket(400, "Error. User not found\n").encode()
     # let original client know it is done
     return dumpsPacket(200, "").encode()
 

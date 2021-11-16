@@ -2,6 +2,7 @@ from Server.storage import getOnlineUsers, getUserByName
 from Server.routes.block import hasblocked
 
 from exceptions.MessageExceptions import UserHasBeenBlockedException
+from exceptions.AuthExceptions import UserNotFoundException
 
 #utils
 from util.packetParser import dumpsPacket
@@ -27,7 +28,8 @@ def messageHandler(clientThread, contents):
     # if exists add message to message queue
     user = getUserByName(contents['reciever'])
     if user == None:
-      return
+      # if user does not exist
+      raise UserNotFoundException
     else:
       store = dumpsPacket(200, current_user+': '+message+"\n")
       user.queueMessage(store)

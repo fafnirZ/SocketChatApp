@@ -18,8 +18,8 @@ if __name__ == '__main__':
   '''
   invalid argv error
   '''
-  if len(sys.argv) != 3:
-    print("\n===== Error usage, python3 server.py SERVER_HOST SERVER_PORT ======\n")
+  if len(sys.argv) != 5:
+    print("\n===== Error usage, python3 server.py SERVER_HOST SERVER_PORT BLOCK_DURATION TIMEOUT ======\n")
     exit(0)
 
   '''

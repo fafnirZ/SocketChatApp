@@ -1,5 +1,7 @@
 import time
 from exceptions.BlockExceptions import UserAlreadyBlockedException, UserNotAlreadyBlockedException
+
+from Server.config import BLOCK_DURATION
 '''
 This class is the main user class
 
@@ -44,9 +46,7 @@ class User():
   def isTimedOut(self):
     if(self.__bannedTime != None):
       # time lapsed
-      if(time.time() - self.__bannedTime <= 10):
-        print(time.time())
-        print(self.__bannedTime)
+      if(time.time() - self.__bannedTime <= BLOCK_DURATION):
         return True
     return False
   
