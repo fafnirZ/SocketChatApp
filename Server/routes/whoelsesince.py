@@ -11,7 +11,7 @@ def whoelsesince(thread, contents) -> list:
   #filtered = list(filter(lambda x: time.time()-int(x['time']) <= time_before, logs))
   filtered = []
   for i in logs:
-    if(i['thread'] is not thread and time.time() - i['time']):
+    if(i['thread'] is not thread and time.time() - i['time'] <= time_before):
       filtered.append(i['thread'].user.getUsername())
 
   # remove duplicates

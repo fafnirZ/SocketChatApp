@@ -167,11 +167,8 @@ class ClientThread(Thread):
       # assigning user to this thread, to use for future method forwarding
       self.user = user
       # appending this thread to online_users
-
-      print(online_users)
-      print('pre online users branch')
       addOnlineUsers(self)
-      print(online_users)
+
     
     # presence broadcast for login
     broadcastHandler(self, self.user.getUsername()+ " has logged in\n")
