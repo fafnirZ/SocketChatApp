@@ -87,14 +87,16 @@ class ClientThread(Thread):
       client is offline
       '''
       if message == '':
+        # terminate timer
+        # timer.forcequit causes timer callback function to not run
+        self.timer.forcequit()
         '''
           only run this is the thread has not been terminated already
           this fixes the double terminate broadcast issue 
         '''
         if not self.terminateEvent.is_set():
           self.clientCleanUp()
-          # terminate timer
-          self.timer.terminate()
+
         break
 
       '''

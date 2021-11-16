@@ -12,6 +12,7 @@ class Timer(threading.Thread):
     
 
     self.terminateEvent = threading.Event()
+    self.forceQuitEvent = threading.Event()
     self.startEvent = threading.Event()
     self.resetEvent = threading.Event()
     self.count = timeout
@@ -31,6 +32,8 @@ class Timer(threading.Thread):
       # @precondition count <= 0
       # happens after the while loop
       self.startEvent.clear()
+      if(self.forceQuitEvent.is_set()):
+        return 
       self.callback()
       self.count = self.timeout
       self.terminate()
@@ -43,3 +46,6 @@ class Timer(threading.Thread):
 
   def terminate(self):
     self.terminateEvent.set()
+  
+  def forcequit(self):
+    self.forceQuitEvent.set()
