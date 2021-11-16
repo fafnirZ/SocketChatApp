@@ -128,9 +128,13 @@ def getSpecificUser(user: tuple):
 methods for timed out users
 '''
 def userTimedOut(user: tuple) -> bool:
-  username, password = user
+  '''
+    checks based on username 
+    since no same username is the same in the entire server
+  '''
+  username, _ = user
   for u in timedout_users:
-    if(u.checkCredentials(username, password) and u.isTimedOut()):
+    if(u.getUsername() == username and u.isTimedOut()):
       return True
   return False
 
