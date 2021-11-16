@@ -1,4 +1,5 @@
 from threading import Thread
+import threading
 import time
 
 # Server Imports
@@ -63,6 +64,9 @@ class ClientThread(Thread):
     print('=== New connection for: ', clientAddress)
     self.clientActive = True
 
+    # terminateEvent
+    self.terminateEvent = threading.Event()
+
     # adding user login to log history
     logUser(self)
   
@@ -83,10 +87,14 @@ class ClientThread(Thread):
       client is offline
       '''
       if message == '':
-        self.clientCleanUp()
-
-        # terminate timer
-        self.timer.terminate()
+        '''
+          only run this is the thread has not been terminated already
+          this fixes the double terminate broadcast issue 
+        '''
+        if not self.terminateEvent.is_set():
+          self.clientCleanUp()
+          # terminate timer
+          self.timer.terminate()
         break
 
       '''
@@ -98,8 +106,8 @@ class ClientThread(Thread):
       if code == "login":
         err = self.login(contents)
         if err:
+          # if error will quit the run loop
           break
-      
 
       elif code == "register":
         self.register(contents)
@@ -192,6 +200,10 @@ class ClientThread(Thread):
   '''
   @sendToClient
   def clientCleanUp(self):
+
+    # sets self.terminateEvent is true
+    self.terminateEvent.set()
+
     self.clientActive = False
     print("===== the user disconnected - ", self.clientAddress)
     
