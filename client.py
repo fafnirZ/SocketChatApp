@@ -12,13 +12,13 @@ import select
 # utils
 from util.packetParser import dumpsPacket, loadsPacket
 from util.Request import post, sendAndWait
-from util.recv import recv_timeout
 
 
 # Client Imports
 from Client.auth import loginHandler, registerHandler
 from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
+from Client.block import blockHandler, unblockHandler
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -126,8 +126,10 @@ if __name__ == '__main__':
           messageHandler(clientSocket, message)
         
         elif message.startswith('block'):
-          # TODO block
-          pass
+          blockHandler(clientSocket, message)
+        
+        elif message.startswith('unblock'):
+          unblockHandler(clientSocket, message)
 
         
         else:

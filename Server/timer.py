@@ -19,6 +19,16 @@ class Timer(threading.Thread):
 
 
   def run(self):
+    '''
+      run until terminate event is set to true
+      server will call reset event whenever the user
+      provided a valid command, resetting timer
+
+      if forcequit command is called, will break out of 
+      timer, and not call the callback function 
+    '''
+
+
     # start timer when initialised
     self.startEvent.set()
 

@@ -10,11 +10,21 @@ class User():
     self.__password = password
     self.__bannedTime = None
 
+
     '''
       will store in dumpsPacket format
       [200] _sender: _message
+      and will be easily sent 
     '''
     self.__messageQueue = []
+
+    '''
+      list of users that are blocked from sending 
+      the user any messages
+
+      List<User>
+    '''
+    self.__blocklist = []
   
   def getUsername(self):
     return self.__username
@@ -39,8 +49,27 @@ class User():
         return True
     return False
   
+  '''
+    offline message functions
+  '''
+
   def queueMessage(self, message):
     self.__messageQueue.append(message)
   
   def dequeueMessage(self):
     return self.__messageQueue.pop(0)
+
+  '''
+    block functions
+  '''
+
+  def blockUser(self, user):
+    self.__blocklist.append(user)
+
+  def unblockUser(self, username : str):
+    for i,u in enumerate(self.__blocklist):
+      if u.getUsername == username:
+        self.__blocklist.pop(i)
+  
+  def getBlocked(self):
+    return self.__blocklist

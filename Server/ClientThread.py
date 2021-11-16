@@ -10,6 +10,7 @@ from Server.routes.whoelsesince import whoelsesince
 from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 from Server.routes.broadcast import broadcastHandler
 from Server.routes.message import messageHandler
+from Server.routes.block import blockHandler, unblockHandler
 from Server.timer import Timer
 from Server.log import logUser
 
@@ -125,7 +126,12 @@ class ClientThread(Thread):
       
       elif code == "message":
         self.message(contents)
-
+      
+      elif code == "block":
+        self.block(contents)
+      
+      elif code == "unblock":
+        self.unblock(contents)
 
   
   '''
@@ -333,5 +339,17 @@ class ClientThread(Thread):
     except:
       print("dequeuing messages sent when user was offline")
     
-
-
+  @resetTimer
+  @sendToClient
+  def block(self, contents):
+    contents = extractContentsToDict(contents)
+    blockHandler(self, contents)
+    print(self.user.getBlocked())
+    return dumpsPacket(200, f"{contents['block']} is blocked\n").encode()
+  
+  @resetTimer
+  @sendToClient
+  def unblock(self, contents):
+    contents = extractContentsToDict(contents)
+    unblockHandler(self, contents)
+    return dumpsPacket(200, f"{contents['unblock']} is unblocked\n").encode()
