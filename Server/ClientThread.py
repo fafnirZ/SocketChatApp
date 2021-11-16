@@ -25,6 +25,8 @@ from util.packetParser import dumpsPacket
 # exceptions from root dir
 from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException, UserTimedOutException, InvalidCredentialsException
 from exceptions.InputExceptions import InvalidInputException
+from exceptions.MessageExceptions import UserHasBeenBlockedException
+from exceptions.BlockExceptions import UserAlreadyBlockedException, CannotBlockSelfException, UserNotAlreadyBlockedException
 
 # utils from root dir
 from util.packetParser import loadsPacket, extractContentsToDict
@@ -316,7 +318,10 @@ class ClientThread(Thread):
   @sendToClient
   def message(self, contents):
     contents = extractContentsToDict(contents)
-    messageHandler(self, contents)
+    try:
+      messageHandler(self, contents)
+    except UserHasBeenBlockedException:
+      return dumpsPacket(400, "Your message could not be delivered as the recipient has blocked you\n").encode()
     # let original client know it is done
     return dumpsPacket(200, "").encode()
 
@@ -324,6 +329,10 @@ class ClientThread(Thread):
     should occur after user has upgraded connection
   '''
   def deQueueMessages(self):
+    '''
+      when user logs on, the all messages in message queue
+      will be displayed
+    '''
     response = ""
     try:
       msg = self.user.dequeueMessage()
@@ -334,19 +343,30 @@ class ClientThread(Thread):
         # get more messages
         msg = self.user.dequeueMessage()
     except:
-      print("dequeuing messages sent when user was offline")
+      pass
     
   @resetTimer
   @sendToClient
   def block(self, contents):
     contents = extractContentsToDict(contents)
-    blockHandler(self, contents)
-    print(self.user.getBlocked())
+    try:
+      blockHandler(self, contents)
+    except CannotBlockSelfException:
+      return dumpsPacket(400, f"Error. Cannot Block Self\n").encode()
+    except UserNotFoundException:
+      return dumpsPacket(400, f"Error. {contents['block']} cannot be found\n").encode()
+    except UserAlreadyBlockedException:
+      return dumpsPacket(400, f"Error. {contents['block']} is already blocked\n").encode()
+
+    # else
     return dumpsPacket(200, f"{contents['block']} is blocked\n").encode()
   
   @resetTimer
   @sendToClient
   def unblock(self, contents):
     contents = extractContentsToDict(contents)
-    unblockHandler(self, contents)
+    try:
+      unblockHandler(self, contents)
+    except UserNotAlreadyBlockedException:
+      return dumpsPacket(400, f"Error. {contents['unblock']} was not blocked\n").encode()
     return dumpsPacket(200, f"{contents['unblock']} is unblocked\n").encode()

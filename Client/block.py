@@ -14,8 +14,8 @@ def blockHandler(socket, command: str):
     [200] _user is blocked
 
     error format:
-    [400] Error. user has already been blocked
-    [400] Error. user not found
+    [400] Error. _user has already been blocked
+    [400] Error. _user not found
     [400] Error. cannot block self
   '''
   command = command.split(" ")
@@ -24,7 +24,7 @@ def blockHandler(socket, command: str):
   post(socket, 'block', {'block': user})
 
 
-def unblockHandler():
+def unblockHandler(socket, command: str):
   '''
     command: unblock _user
     format:

@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
           code, content = loadsPacket(response.decode())
 
-          if(code == "200" or code == "500"):
+          if(code == "200" or code == "500" or code=="400"):
             print(content, end="")
           
           elif(code == "FIN"):

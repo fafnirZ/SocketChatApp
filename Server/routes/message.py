@@ -1,4 +1,7 @@
 from Server.storage import getOnlineUsers, getUserByName
+from Server.routes.block import hasblocked
+
+from exceptions.MessageExceptions import UserHasBeenBlockedException
 
 #utils
 from util.packetParser import dumpsPacket
@@ -13,6 +16,7 @@ def messageHandler(clientThread, contents):
 
   message = contents['message']
   current_user = clientThread.user.getUsername()
+
 
   '''
     signifies either
@@ -30,6 +34,17 @@ def messageHandler(clientThread, contents):
 
   else:
     for user in target_user:
+
+      '''
+        check if reciever has blocked sender
+      '''
+      if(hasblocked(clientThread.user, user.user)):
+        raise UserHasBeenBlockedException
+      
+
+      '''
+        send message to matches
+      '''
       print(dumpsPacket(200,message))
       user.clientSocket.sendall(dumpsPacket(200, current_user+': '+message+"\n").encode('utf-8'))
   

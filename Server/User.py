@@ -1,4 +1,5 @@
 import time
+from exceptions.BlockExceptions import UserAlreadyBlockedException, UserNotAlreadyBlockedException
 '''
 This class is the main user class
 
@@ -64,12 +65,18 @@ class User():
   '''
 
   def blockUser(self, user):
-    self.__blocklist.append(user)
+    if user not in self.__blocklist:
+      self.__blocklist.append(user)
+    else:
+      raise UserAlreadyBlockedException
 
-  def unblockUser(self, username : str):
+  def unblockUser(self, user):
     for i,u in enumerate(self.__blocklist):
-      if u.getUsername == username:
+      if u.getUsername() == user.getUsername():
         self.__blocklist.pop(i)
+        return
+    
+    raise UserNotAlreadyBlockedException
   
   def getBlocked(self):
     return self.__blocklist

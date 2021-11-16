@@ -1,4 +1,5 @@
 from Server.storage import getOnlineUsers
+from Server.routes.block import hasblocked
 
 #utils
 from util.packetParser import dumpsPacket
@@ -12,5 +13,6 @@ def broadcastHandler(clientThread, message:str):
     that are not self
   '''
   for user in online_users:
-    print(dumpsPacket(200,message))
-    user.clientSocket.sendall(dumpsPacket(200, message).encode('utf-8'))
+    # will not broadcast to users who have blocked the you
+    if(not hasblocked(clientThread.user, user.user)):
+      user.clientSocket.sendall(dumpsPacket(200, message).encode('utf-8'))

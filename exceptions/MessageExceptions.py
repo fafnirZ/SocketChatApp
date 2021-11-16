@@ -1,0 +1,2 @@
+class UserHasBeenBlockedException(Exception):
+  pass
