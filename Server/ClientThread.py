@@ -11,6 +11,7 @@ from Server.routes.timeout import checkUserLoggedIn, checkUserTimedOut
 from Server.routes.broadcast import broadcastHandler
 from Server.routes.message import messageHandler
 from Server.routes.block import blockHandler, unblockHandler
+from Server.routes.private import startPrivateHandler
 from Server.timer import Timer
 from Server.log import logUser
 
@@ -134,6 +135,10 @@ class ClientThread(Thread):
       
       elif code == "unblock":
         self.unblock(contents)
+      
+      elif code == "startprivate":
+        self.startprivate(contents)
+
 
   
   '''
@@ -372,3 +377,8 @@ class ClientThread(Thread):
     except UserNotAlreadyBlockedException:
       return dumpsPacket(400, f"Error. {contents['unblock']} was not blocked\n").encode()
     return dumpsPacket(200, f"{contents['unblock']} is unblocked\n").encode()
+
+  @resetTimer
+  def startprivate(self, contents):
+    contents = extractContentsToDict(contents)
+    startPrivateHandler(self, contents)

@@ -19,6 +19,7 @@ from Client.auth import loginHandler, registerHandler
 from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
+from Client.private import startPrivateHandler, replyYes, replyNo
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -95,6 +96,10 @@ if __name__ == '__main__':
             print(content)
             clientSocket.close()
             exit(0)
+          
+          elif(code == "P2P"):
+            print(content)
+
       else:
         '''
           if user input
@@ -131,7 +136,15 @@ if __name__ == '__main__':
         elif message.startswith('unblock'):
           unblockHandler(clientSocket, message)
 
-        
+        elif message.startswith('startprivate'):
+          startPrivateHandler(clientSocket, message)
+
+        elif message == 'y' or message == "Y":
+          replyYes(clientSocket)
+        elif message == "n" or message == "N":
+          replyNo(clientSocket)
+
+
         else:
           print("Error invalid command")
         

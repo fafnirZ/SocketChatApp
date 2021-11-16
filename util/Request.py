@@ -21,6 +21,22 @@ def sendAndWait(socket, route, data):
 
   return response.decode()
 
+def sendAndWaitTimeout2(socket, route, data):
+
+  #sends request
+  #waits for response 
+  #then returns response object
+
+  parsedRequest = dumpsPacket(route, json.dumps(data)).encode('utf-8')
+  
+  # send socket
+  socket.sendall(parsedRequest)
+
+  # waiting for response
+  response = recv_timeout(socket)
+  print(response)
+  return response.decode()
+
 
 def post(socket, route, data):
   parsedRequest = dumpsPacket(route, json.dumps(data)).encode('utf-8')
