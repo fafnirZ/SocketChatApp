@@ -20,6 +20,7 @@ from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
 from Client.private import startPrivateHandler, replyYes, replyNo, privateMessageHandler, stopPrivateHandler
+from Client.refresh import refreshTimer
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -202,12 +203,15 @@ if __name__ == '__main__':
 
         elif message.startswith('startprivate'):
           startPrivateHandler(clientSocket, message)
-        
+          refreshTimer(open_sockets)
+
         elif message.startswith('private'):
           privateMessageHandler(open_sockets, username, message)
+          refreshTimer(open_sockets)
 
         elif message.startswith('stopprivate'):
           stopPrivateHandler(open_sockets, username, message)
+          refreshTimer(open_sockets)
 
 
         elif message == 'y' or message == "Y":
@@ -219,12 +223,19 @@ if __name__ == '__main__':
         elif message == "n" or message == "N":
           replyNo(clientSocket)
 
+        elif message == "logout":
+          # close all connections
+          for sock in open_sockets:
+            if(sock['connection'] != 'server'):
+              sock['socket'].sendall(dumpsPacket(200, f"{username} has closed your private connection\n").encode())
+            sock['socket'].close()
+          exit(0)
+
         else:
           print("Error invalid command")
-        
-
-
 
 # close all connections
 for sock in open_sockets:
+  if(sock['connection'] != 'server'):
+    sock['socket'].sendall(dumpsPacket(200, f"{username} has closed your private connection\n").encode())
   sock['socket'].close()
