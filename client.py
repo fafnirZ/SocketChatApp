@@ -19,7 +19,7 @@ from Client.auth import loginHandler, registerHandler
 from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
-from Client.private import startPrivateHandler, replyYes, replyNo, privateMessageHandler
+from Client.private import startPrivateHandler, replyYes, replyNo, privateMessageHandler, stopPrivateHandler
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -206,6 +206,8 @@ if __name__ == '__main__':
         elif message.startswith('private'):
           privateMessageHandler(open_sockets, username, message)
 
+        elif message.startswith('stopprivate'):
+          stopPrivateHandler(open_sockets, username, message)
 
 
         elif message == 'y' or message == "Y":

@@ -24,6 +24,9 @@ def startPrivateHandler(socket, command:str):
   target = command[1]
 
   post(socket, 'startprivate', {'target': target})
+
+
+
   
 
 def replyYes(EstablisherSocket):
@@ -58,4 +61,16 @@ def privateMessageHandler(open_sockets, username: str, command: str):
   
   if(peerSocket != None):
     # send messages
-    peerSocket.sendall(dumpsPacket(200, f"{target}(private): {message}\n").encode())
+    peerSocket.sendall(dumpsPacket(200, f"{username}(private): {message}\n").encode())
+
+
+def stopPrivateHandler(open_sockets, username: str, command: str):
+
+  command = command.split(" ")
+  target = command[1]
+
+  for i, sock in enumerate(open_sockets):
+    if sock['connection'] == target:
+      sockt = open_sockets.pop(i)
+      sockt['socket'].sendall(dumpsPacket(200, f"{username} has closed your private connection\n").encode())
+      sockt['socket'].close()
