@@ -35,7 +35,7 @@ def sendAndWaitTimeout2(socket, route, data):
   # waiting for response
   response = recv_timeout(socket)
   print(response)
-  return response.decode()
+  return response
 
 
 def post(socket, route, data):

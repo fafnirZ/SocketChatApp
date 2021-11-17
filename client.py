@@ -10,7 +10,7 @@ import json
 import select
 
 # utils
-from util.packetParser import dumpsPacket, loadsPacket
+from util.packetParser import dumpsPacket, loadsPacket, extractContentsToDict
 from util.Request import post, sendAndWait
 
 
@@ -20,6 +20,7 @@ from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
 from Client.private import startPrivateHandler, replyYes, replyNo
+from Client.P2PThread import P2PThread
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -44,6 +45,9 @@ if __name__ == '__main__':
 
   # build connection with the server and send message to it
   clientSocket.connect(serverAddress)
+
+  open_sockets = []
+  open_sockets.append(clientSocket)
 
 
   '''
@@ -74,15 +78,19 @@ if __name__ == '__main__':
     '''
     event loop
     '''
+    readers_list = []
+    readers_list.append(sys.stdin)
+    readers_list += open_sockets
     # this line is super important
-    readers, _, _ = select.select([sys.stdin,clientSocket], [], [])
+    # non blocking i/o
+    readers, _, _ = select.select(readers_list, [], [])
 
     for reader in readers:
 
       '''
         if connection
       '''
-      if reader is clientSocket:
+      if reader in open_sockets:
         # if response
         response = clientSocket.recv(1048)
         if(response != "" and response != None):
@@ -90,6 +98,9 @@ if __name__ == '__main__':
           code, content = loadsPacket(response.decode())
 
           if(code == "200" or code == "500" or code=="400"):
+            '''
+              expects [200] _string
+            '''
             print(content, end="")
           
           elif(code == "FIN"):
@@ -98,7 +109,22 @@ if __name__ == '__main__':
             exit(0)
           
           elif(code == "P2P"):
-            print(content)
+            '''
+              expects [200] {'message': _message}
+            '''
+            print(extractContentsToDict(content)['message'])
+          
+          elif(code == "P2PCONN"):
+            contents = extractContentsToDict(content)
+            newP2PSock = socket(AF_INET, SOCK_STREAM)
+            address = (contents['ip'], contents['port'])
+            
+            open_sockets.append(newP2PSock)
+
+            newP2PSock.connect(address)
+            print('new socket')
+            
+            newP2PSock.sendall('hi'.encode())
 
       else:
         '''
@@ -140,7 +166,15 @@ if __name__ == '__main__':
           startPrivateHandler(clientSocket, message)
 
         elif message == 'y' or message == "Y":
-          replyYes(clientSocket)
+          print("BEFO")
+          sokt = replyYes(clientSocket)
+          open_sockets.append(sokt)
+
+          #starts listening
+          sokt.listen()
+          print("YES")
+
+
         elif message == "n" or message == "N":
           replyNo(clientSocket)
 
@@ -151,6 +185,6 @@ if __name__ == '__main__':
 
 
 
-
-
-clientSocket.close()
+# close all connections
+for openSocket in open_sockets:
+  openSocket.close()

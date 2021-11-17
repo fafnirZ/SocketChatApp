@@ -1,4 +1,5 @@
 from util.Request import post
+from socket import *
 
 def startPrivateHandler(socket, command:str):
   '''
@@ -24,8 +25,19 @@ def startPrivateHandler(socket, command:str):
   post(socket, 'startprivate', {'target': target})
   
 
-def replyYes(socket):
-  post(socket, 'reply', {'reply': "yes"})
+def replyYes(EstablisherSocket):
+  print('heheheh')
+  '''
+    create new socket and send 
+  '''
+  sock = socket(AF_INET, SOCK_STREAM)
+  sock.bind(('', 0))
+
+  # send sock information to 
+  print(sock.getsockname())
+  post(EstablisherSocket, 200, {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1]})
+  
+  return sock
 
 def replyNo(socket):
-  post(socket, 'reply', {'reply': "no"})
+  post(socket, 400, {'reply': "no"})
