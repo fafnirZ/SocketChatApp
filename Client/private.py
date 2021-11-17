@@ -26,18 +26,20 @@ def startPrivateHandler(socket, command:str):
   
 
 def replyYes(EstablisherSocket):
-  print('heheheh')
   '''
     create new socket and send 
   '''
   sock = socket(AF_INET, SOCK_STREAM)
   sock.bind(('', 0))
-
-  # send sock information to 
-  print(sock.getsockname())
-  post(EstablisherSocket, 200, {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1]})
+  sock.listen()
   
-  return sock
+  # send sock information to other client via server
+  post(EstablisherSocket, 200, {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1]})
+
+  # wait till connection is established
+  sockt, addr = sock.accept()
+  print('established')
+  return sockt
 
 def replyNo(socket):
   post(socket, 400, {'reply': "no"})

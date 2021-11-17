@@ -20,7 +20,6 @@ from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
 from Client.private import startPrivateHandler, replyYes, replyNo
-from Client.P2PThread import P2PThread
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -91,10 +90,11 @@ if __name__ == '__main__':
         if connection
       '''
       if reader in open_sockets:
+        print(readers)
         # if response
-        response = clientSocket.recv(1048)
+        response = reader.recv(1048)
         if(response != "" and response != None):
-
+          print(response)
           code, content = loadsPacket(response.decode())
 
           if(code == "200" or code == "500" or code=="400"):
@@ -120,11 +120,16 @@ if __name__ == '__main__':
             address = (contents['ip'], contents['port'])
             
             open_sockets.append(newP2PSock)
+            try:
+              newP2PSock.connect(address)
+            except:
+              print('connection faileddd')
 
-            newP2PSock.connect(address)
-            print('new socket')
-            
-            newP2PSock.sendall('hi'.encode())
+          # elif(code == "P2PCONNACK"):
+          #   # need to acknowledge connection open by sending the other
+          #   # client with the username
+          #   print("CONACK")
+          #   print(contents)
 
       else:
         '''
@@ -166,13 +171,10 @@ if __name__ == '__main__':
           startPrivateHandler(clientSocket, message)
 
         elif message == 'y' or message == "Y":
-          print("BEFO")
           sokt = replyYes(clientSocket)
           open_sockets.append(sokt)
-
+          print(readers_list)
           #starts listening
-          sokt.listen()
-          print("YES")
 
 
         elif message == "n" or message == "N":
