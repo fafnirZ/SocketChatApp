@@ -26,7 +26,7 @@ def startPrivateHandler(socket, command:str):
   post(socket, 'startprivate', {'target': target})
   
 
-def replyYes(EstablisherSocket):
+def replyYes(EstablisherSocket, edge_queue, username):
   '''
     create new socket and send 
   '''
@@ -34,8 +34,11 @@ def replyYes(EstablisherSocket):
   sock.bind(('', 0))
   sock.listen()
 
+  #ASSUME next in edgequeue is the correct one
+  origin = edge_queue.pop(0)
+
   # send sock information to other client via server
-  post(EstablisherSocket, 200, {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1]})
+  post(EstablisherSocket, "P2P", {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1], 'origin': origin, 'target': username})
 
   # wait till connection is established
   sockt, addr = sock.accept()

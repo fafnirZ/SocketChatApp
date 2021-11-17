@@ -53,6 +53,12 @@ if __name__ == '__main__':
   open_sockets.append({'connection': 'server', 'socket': clientSocket})
 
   '''
+    edge queue
+  '''
+  edge_queue = []
+
+
+  '''
     authenticate
   '''
   authenticated: bool = False
@@ -74,6 +80,7 @@ if __name__ == '__main__':
     print("Welcome to the greatest messaging application ever!")
   else:
     exit(0)
+
 
   
   while authenticated:
@@ -118,16 +125,24 @@ if __name__ == '__main__':
               sock['socket'].close()
             exit(0)
           
-          elif(code == "P2PDUPE"):
-            '''
-              Check if client already has P2P connection
-            '''
-            contents = extractContentsToDict(content)
-            user = contents['username']
-            if(connectionAlreadyExists(open_sockets, user)):
-              post(reader, 400, {'message': 'client already exists'})
-            else:
-              post(reader, 200, {})
+          # elif(code == "P2PDUPE"):
+          #   '''
+          #     Check if client already has P2P connection
+          #   '''
+          #   contents = extractContentsToDict(content)
+          #   user = contents['username']
+
+          #   if(connectionAlreadyExists(open_sockets, user)):
+          #     print("branch1")
+          #     post(clientSocket, 400, {'message': 'client already exists'})
+          #   else:
+          #     print("branch2")
+          #     for sock in open_sockets_as_list:
+          #       print(sock)
+          #       #sock.sendall(dumpsPacket("whoelse", {}).encode())
+          #     print(open_sockets)
+          #     clientSocket.sendall(dumpsPacket("sprivp1", {}).encode())
+          #     #post(clientSocket, 200, {})
 
           
           elif(code == "P2P"):
@@ -135,13 +150,15 @@ if __name__ == '__main__':
               expects [200] {'message': _message}
             '''
             print(extractContentsToDict(content)['message'])
+            edge_queue.append(extractContentsToDict(content)['origin'])
+
           
           elif(code == "P2PCONN"):
             '''
               initialising client runs this function
             '''
             contents = extractContentsToDict(content)
-            user = contents['username']
+            user = contents['target']
 
             newP2PSock = socket(AF_INET, SOCK_STREAM)
             address = (contents['ip'], contents['port'])
@@ -226,7 +243,7 @@ if __name__ == '__main__':
           refreshTimer(open_sockets)
 
         elif message == 'y' or message == "Y":
-          sokt = replyYes(clientSocket)
+          sokt = replyYes(clientSocket, edge_queue, username)
           open_sockets.append({'socket': sokt})
           #print(readers_list)
           #starts listening

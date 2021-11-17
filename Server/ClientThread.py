@@ -1,6 +1,7 @@
 from threading import Thread
 import threading
 import time
+import json
 
 # Server Imports
 
@@ -16,7 +17,7 @@ from Server.timer import Timer
 from Server.log import logUser
 
 
-from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser, online_users, all_users
+from Server.storage import userOnline, userExists, addOnlineUsers, addAllUsers, setUserOffline, addUserTimeOut, getSpecificUser, online_users, all_users, getOnlineUsers
 from Server.User import User
 
 #utils
@@ -74,6 +75,9 @@ class ClientThread(Thread):
 
     # adding user login to log history
     logUser(self)
+
+    # create p2p node list
+    self.p2p = []
   
   def run(self):
     # initialise countdown inactivity timer
@@ -143,9 +147,29 @@ class ClientThread(Thread):
       elif code == "refresh":
         # refresh timer
         self.refreshTimer()
+      
+      # elif code == "sprivpart1":
+      #   data = {'username': clientThread.user.getUsername()}
+      #   self.clientSocket.sendall(dumpsPacket("P2P", json.dumps(data)).encode())
+
+      elif code == "P2P":
+        print("p2p reached")
+        contents = extractContentsToDict(contents)
+        origin = contents['origin']
+        origin_user = list(filter(lambda u: u.user.getUsername() == origin, getOnlineUsers()))
+        origin_user = origin_user[0]
+        print(origin_user)
+        origin_user.clientSocket.sendall(dumpsPacket("P2PCONN", json.dumps(contents)).encode())
+        print('sent')
+
+      # elif code == "P2PCONNACK":
+      #   self.clientSocket.sendall(dumpsPacket("P2PCONNACK", contents).encode())
 
 
-  
+  def addEdge(self, edge):
+    self.edge.append(edge)
+
+
   '''
     upgrades connection
   '''
@@ -384,11 +408,11 @@ class ClientThread(Thread):
     return dumpsPacket(200, f"{contents['unblock']} is unblocked\n").encode()
 
   @resetTimer
-  @sendToClient
   def startprivate(self, contents):
     contents = extractContentsToDict(contents)
     try:
       return startPrivateHandler(self, contents)
+      self
     except CannotEstablishPrivateWithSelfException:
       return dumpsPacket(400, f"Error. Cannot Establish private connection with self\n").encode()
     

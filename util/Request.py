@@ -19,6 +19,7 @@ def sendAndWait(socket, route, data):
   # waiting for response
   response = socket.recv(1024)
 
+
   return response.decode()
 
 def sendAndWaitTimeout2(socket, route, data):
