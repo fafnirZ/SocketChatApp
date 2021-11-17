@@ -19,7 +19,7 @@ from Client.auth import loginHandler, registerHandler
 from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
-from Client.private import startPrivateHandler, replyYes, replyNo
+from Client.private import startPrivateHandler, replyYes, replyNo, privateMessageHandler
 
 # exceptions
 from exceptions.AuthExceptions import UserNotFoundException
@@ -45,8 +45,12 @@ if __name__ == '__main__':
   # build connection with the server and send message to it
   clientSocket.connect(serverAddress)
 
+  '''
+    open_sockets is a HM
+    'username': socket
+  '''
   open_sockets = []
-  open_sockets.append(clientSocket)
+  open_sockets.append({'connection': 'server', 'socket': clientSocket})
 
 
   '''
@@ -79,7 +83,11 @@ if __name__ == '__main__':
     '''
     readers_list = []
     readers_list.append(sys.stdin)
-    readers_list += open_sockets
+    
+    # map sockets from dictionary to a list
+    open_sockets_as_list = list(map(lambda x: x['socket'], open_sockets))
+    readers_list += open_sockets_as_list
+
     # this line is super important
     # non blocking i/o
     readers, _, _ = select.select(readers_list, [], [])
@@ -89,12 +97,11 @@ if __name__ == '__main__':
       '''
         if connection
       '''
-      if reader in open_sockets:
-        print(readers)
+      if reader in open_sockets_as_list:
         # if response
         response = reader.recv(1048)
-        if(response != "" and response != None):
-          print(response)
+        if(response != "" and response != None and len(response) > 0):
+          # print(response)
           code, content = loadsPacket(response.decode())
 
           if(code == "200" or code == "500" or code=="400"):
@@ -104,6 +111,9 @@ if __name__ == '__main__':
             print(content, end="")
           
           elif(code == "FIN"):
+            '''
+              to close client
+            '''
             print(content)
             clientSocket.close()
             exit(0)
@@ -115,21 +125,40 @@ if __name__ == '__main__':
             print(extractContentsToDict(content)['message'])
           
           elif(code == "P2PCONN"):
+            '''
+              initialising client runs this function
+            '''
             contents = extractContentsToDict(content)
             newP2PSock = socket(AF_INET, SOCK_STREAM)
             address = (contents['ip'], contents['port'])
-            
-            open_sockets.append(newP2PSock)
+            username = contents['username']
             try:
               newP2PSock.connect(address)
+              print(f'{username} accepts private messaging')
             except:
               print('connection faileddd')
+              pass
+            
+            # add to open sockets
+            open_sockets.append({'connection': username, 'socket' : newP2PSock})
 
-          # elif(code == "P2PCONNACK"):
-          #   # need to acknowledge connection open by sending the other
-          #   # client with the username
-          #   print("CONACK")
-          #   print(contents)
+            # send via p2p
+            newP2PSock.sendall(dumpsPacket("P2PCONNACK", json.dumps({'username': username})).encode())
+
+          elif(code == "P2PCONNACK"):
+            '''
+              accepting client runs this function
+            '''
+            # need to acknowledge connection open by sending the other
+            # client with the username
+            contents = extractContentsToDict(content)
+
+            # find the dictionary which matches the current socket
+            # updates the hashtable to include username 
+            for sock in open_sockets:
+              if sock['socket'] == reader:
+                sock['connection'] = contents['username']
+
 
       else:
         '''
@@ -169,17 +198,20 @@ if __name__ == '__main__':
 
         elif message.startswith('startprivate'):
           startPrivateHandler(clientSocket, message)
+        
+        elif message.startswith('private'):
+          privateMessageHandler(open_sockets, username, message)
+
+
 
         elif message == 'y' or message == "Y":
           sokt = replyYes(clientSocket)
-          open_sockets.append(sokt)
-          print(readers_list)
+          open_sockets.append({'socket': sokt})
+          #print(readers_list)
           #starts listening
-
 
         elif message == "n" or message == "N":
           replyNo(clientSocket)
-
 
         else:
           print("Error invalid command")
@@ -188,5 +220,5 @@ if __name__ == '__main__':
 
 
 # close all connections
-for openSocket in open_sockets:
-  openSocket.close()
+for key in open_sockets:
+  openSockets[key].close()

@@ -1,4 +1,5 @@
 from util.Request import post
+from util.packetParser import dumpsPacket
 from socket import *
 
 def startPrivateHandler(socket, command:str):
@@ -32,14 +33,29 @@ def replyYes(EstablisherSocket):
   sock = socket(AF_INET, SOCK_STREAM)
   sock.bind(('', 0))
   sock.listen()
-  
+
   # send sock information to other client via server
   post(EstablisherSocket, 200, {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1]})
 
   # wait till connection is established
   sockt, addr = sock.accept()
-  print('established')
   return sockt
 
 def replyNo(socket):
   post(socket, 400, {'reply': "no"})
+
+
+def privateMessageHandler(open_sockets, username: str, command: str):
+
+  command = command.split(" ")
+  target = command[1]
+  message = " ".join(command[2:])
+
+  peerSocket = None
+  for sokt in open_sockets:
+    if sokt['connection'] == target:
+      peerSocket= sokt['socket']
+  
+  if(peerSocket != None):
+    # send messages
+    peerSocket.sendall(dumpsPacket(200, f"{target}(private): {message}\n").encode())
