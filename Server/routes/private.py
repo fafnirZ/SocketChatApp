@@ -25,7 +25,7 @@ def startPrivateHandler(clientThread, contents: dict):
   if code == "400":
     raise PrivateConnectionAlreadyExistsException
 
-  data = {'message': clientThread.user.getUsername()+" would like to private message, enter y or n: "}
+  data = {'message': clientThread.user.getUsername()+" would like to private message, enter y or n: \n"}
   resp = sendAndWait(target_user.clientSocket, "P2P", data)
 
   code, contents = loadsPacket(resp)
