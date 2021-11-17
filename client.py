@@ -115,7 +115,8 @@ if __name__ == '__main__':
               to close client
             '''
             print(content)
-            clientSocket.close()
+            for sock in open_sockets:
+              sock['socket'].close()
             exit(0)
           
           elif(code == "P2P"):
@@ -131,23 +132,26 @@ if __name__ == '__main__':
             contents = extractContentsToDict(content)
             newP2PSock = socket(AF_INET, SOCK_STREAM)
             address = (contents['ip'], contents['port'])
-            username = contents['username']
+            user = contents['username']
             try:
               newP2PSock.connect(address)
-              print(f'{username} accepts private messaging')
+              print(f'{user} accepts private messaging')
             except:
               print('connection faileddd')
               pass
             
             # add to open sockets
-            open_sockets.append({'connection': username, 'socket' : newP2PSock})
+            open_sockets.append({'connection': user, 'socket' : newP2PSock})
 
             # send via p2p
+            # uses the global username
             newP2PSock.sendall(dumpsPacket("P2PCONNACK", json.dumps({'username': username})).encode())
 
           elif(code == "P2PCONNACK"):
             '''
               accepting client runs this function
+              upgrades socket stored in all_sockets to include
+              'connection': _username
             '''
             # need to acknowledge connection open by sending the other
             # client with the username
@@ -220,5 +224,5 @@ if __name__ == '__main__':
 
 
 # close all connections
-for key in open_sockets:
-  openSockets[key].close()
+for sock in open_sockets:
+  sock['socket'].close()
