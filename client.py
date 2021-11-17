@@ -147,7 +147,15 @@ if __name__ == '__main__':
           
           elif(code == "P2P"):
             '''
-              expects [200] {'message': _message}
+              Sent from TargetClientThread
+              contains 
+              {
+                message: _message,
+                origin: _origin_user
+              }
+
+              adds origin to edge queue
+              and expects user to input y/n as input
             '''
             print(extractContentsToDict(content)['message'])
             edge_queue.append(extractContentsToDict(content)['origin'])
@@ -243,6 +251,18 @@ if __name__ == '__main__':
           refreshTimer(open_sockets)
 
         elif message == 'y' or message == "Y":
+          '''
+            sends 
+            {
+              ip: _ip
+              port: _port
+              origin: _origin
+              target: _target
+            }
+            to Target ClientSocket
+            target ClientSocket will communicate with origin ClientSocket
+            telling origin Client to initiate a TCP connection
+          '''
           sokt = replyYes(clientSocket, edge_queue, username)
           open_sockets.append({'socket': sokt})
           #print(readers_list)

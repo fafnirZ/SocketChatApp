@@ -153,17 +153,23 @@ class ClientThread(Thread):
       #   self.clientSocket.sendall(dumpsPacket("P2P", json.dumps(data)).encode())
 
       elif code == "P2P":
-        print("p2p reached")
+        '''
+          will communicate with Origin Client
+          contents,sending:
+          {
+            ip: _ip
+            port: _port
+            origin: _origin
+            target: _target
+          }
+          will cause origin client to make a tcp connection directly to target client
+        '''
         contents = extractContentsToDict(contents)
         origin = contents['origin']
         origin_user = list(filter(lambda u: u.user.getUsername() == origin, getOnlineUsers()))
         origin_user = origin_user[0]
-        print(origin_user)
         origin_user.clientSocket.sendall(dumpsPacket("P2PCONN", json.dumps(contents)).encode())
-        print('sent')
 
-      # elif code == "P2PCONNACK":
-      #   self.clientSocket.sendall(dumpsPacket("P2PCONNACK", contents).encode())
 
 
   def addEdge(self, edge):

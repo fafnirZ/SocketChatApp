@@ -7,7 +7,14 @@ import select
 from exceptions.PrivateExceptions import CannotEstablishPrivateWithSelfException, PrivateConnectionAlreadyExistsException
 
 def startPrivateHandler(clientThread, contents: dict):
-
+  '''
+    run by origin (initiating) clientThread
+    sends to target Client
+    {
+      message : _message,
+      origin : _origin_user
+    }
+  '''
 
   target = contents['target']
 
