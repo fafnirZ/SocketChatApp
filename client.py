@@ -19,7 +19,7 @@ from Client.auth import loginHandler, registerHandler
 from Client.broadcast import broadcastHandler
 from Client.message import messageHandler
 from Client.block import blockHandler, unblockHandler
-from Client.private import startPrivateHandler, replyYes, replyNo, privateMessageHandler, stopPrivateHandler
+from Client.private import startPrivateHandler, replyYes, replyNo, privateMessageHandler, stopPrivateHandler, connectionAlreadyExists
 from Client.refresh import refreshTimer
 
 # exceptions
@@ -39,7 +39,6 @@ if __name__ == '__main__':
   serverPort = int(sys.argv[2])
   serverAddress = (serverHost, serverPort)
 
-
   # define a socket for the client side, it would be used to communicate with the server
   clientSocket = socket(AF_INET, SOCK_STREAM)
 
@@ -52,7 +51,6 @@ if __name__ == '__main__':
   '''
   open_sockets = []
   open_sockets.append({'connection': 'server', 'socket': clientSocket})
-
 
   '''
     authenticate
@@ -120,6 +118,18 @@ if __name__ == '__main__':
               sock['socket'].close()
             exit(0)
           
+          elif(code == "P2PDUPE"):
+            '''
+              Check if client already has P2P connection
+            '''
+            contents = extractContentsToDict(content)
+            user = contents['username']
+            if(connectionAlreadyExists(open_sockets, user)):
+              post(reader, 400, {'message': 'client already exists'})
+            else:
+              post(reader, 200, {})
+
+          
           elif(code == "P2P"):
             '''
               expects [200] {'message': _message}
@@ -131,9 +141,11 @@ if __name__ == '__main__':
               initialising client runs this function
             '''
             contents = extractContentsToDict(content)
+            user = contents['username']
+
             newP2PSock = socket(AF_INET, SOCK_STREAM)
             address = (contents['ip'], contents['port'])
-            user = contents['username']
+
             try:
               newP2PSock.connect(address)
               print(f'{user} accepts private messaging')
@@ -212,7 +224,6 @@ if __name__ == '__main__':
         elif message.startswith('stopprivate'):
           stopPrivateHandler(open_sockets, username, message)
           refreshTimer(open_sockets)
-
 
         elif message == 'y' or message == "Y":
           sokt = replyYes(clientSocket)

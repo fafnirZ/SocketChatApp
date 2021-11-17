@@ -28,6 +28,7 @@ from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineEx
 from exceptions.InputExceptions import InvalidInputException
 from exceptions.MessageExceptions import UserHasBeenBlockedException
 from exceptions.BlockExceptions import UserAlreadyBlockedException, CannotBlockSelfException, UserNotAlreadyBlockedException
+from exceptions.PrivateExceptions import CannotEstablishPrivateWithSelfException, PrivateConnectionAlreadyExistsException
 
 # utils from root dir
 from util.packetParser import loadsPacket, extractContentsToDict
@@ -383,9 +384,16 @@ class ClientThread(Thread):
     return dumpsPacket(200, f"{contents['unblock']} is unblocked\n").encode()
 
   @resetTimer
+  @sendToClient
   def startprivate(self, contents):
     contents = extractContentsToDict(contents)
-    startPrivateHandler(self, contents)
+    try:
+      return startPrivateHandler(self, contents)
+    except CannotEstablishPrivateWithSelfException:
+      return dumpsPacket(400, f"Error. Cannot Establish private connection with self\n").encode()
+    
+    except PrivateConnectionAlreadyExistsException:
+      return dumpsPacket(400, f"Error. Private connection with {contents['target']} already exists\n").encode()
 
   @resetTimer
   def refreshTimer(self):

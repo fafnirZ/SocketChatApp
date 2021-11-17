@@ -42,7 +42,7 @@ def replyYes(EstablisherSocket):
   return sockt
 
 def replyNo(socket):
-  post(socket, 400, {'reply': "no"})
+  post(socket, 400, {})
 
 
 
@@ -72,3 +72,10 @@ def stopPrivateHandler(open_sockets, username: str, command: str):
       sockt = open_sockets.pop(i)
       sockt['socket'].sendall(dumpsPacket(200, f"{username} has closed your private connection\n").encode())
       sockt['socket'].close()
+
+  
+def connectionAlreadyExists(open_sockets, target: str):
+  for sock in open_sockets:
+    if sock['connection'] == target:
+      return True
+  return False

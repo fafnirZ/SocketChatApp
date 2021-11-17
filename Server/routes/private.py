@@ -3,6 +3,8 @@ from util.packetParser import extractContentsToDict, loadsPacket, dumpsPacket
 from Server.storage import getOnlineUsers
 import json
 
+from exceptions.PrivateExceptions import CannotEstablishPrivateWithSelfException, PrivateConnectionAlreadyExistsException
+
 def startPrivateHandler(clientThread, contents: dict):
 
 
@@ -12,25 +14,30 @@ def startPrivateHandler(clientThread, contents: dict):
 
   target_user = target_user[0]
 
+  # check if target_is self
+  if target_user == clientThread:
+    raise CannotEstablishPrivateWithSelfException
+
+  # check if connection already exists
+  data = {'username': clientThread.user.getUsername()}
+  resp = sendAndWait(target_user.clientSocket, "P2PDUPE", data)
+  code , contents = loadsPacket(resp)
+  if code == "400":
+    raise PrivateConnectionAlreadyExistsException
+
   data = {'message': clientThread.user.getUsername()+" would like to private message, enter y or n: "}
   resp = sendAndWait(target_user.clientSocket, "P2P", data)
 
   code, contents = loadsPacket(resp)
 
   contents = extractContentsToDict(contents)
-  # reply = contents['reply']
 
-
-  # if reply == 'yes':
-  #   pass
-  # elif reply == 'no':
-  #   pass
   if code == "200":
     # sending to client
     username = target_user.user.getUsername()
     data = contents
     data['username'] = username
-    clientThread.clientSocket.sendall(dumpsPacket("P2PCONN", json.dumps(data)).encode())
+    return dumpsPacket("P2PCONN", json.dumps(data)).encode()
   
   elif code == "400":
-    pass
+    return dumpsPacket(400, f"{target_user.user.getUsername()} has declined your private invitation\n").encode()
