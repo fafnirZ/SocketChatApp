@@ -27,7 +27,7 @@ from util.packetParser import dumpsPacket
 # exceptions from root dir
 from exceptions.AuthExceptions import UserNotFoundException, UserAlreadyOnlineException, UserTimedOutException, InvalidCredentialsException
 from exceptions.InputExceptions import InvalidInputException
-from exceptions.MessageExceptions import UserHasBeenBlockedException
+from exceptions.MessageExceptions import UserHasBeenBlockedException, CannotMessageSelfException
 from exceptions.BlockExceptions import UserAlreadyBlockedException, CannotBlockSelfException, UserNotAlreadyBlockedException
 from exceptions.PrivateExceptions import CannotEstablishPrivateWithSelfException, PrivateConnectionAlreadyExistsException
 
@@ -105,7 +105,6 @@ class ClientThread(Thread):
         '''
         if not self.terminateEvent.is_set():
           self.clientCleanUp()
-
         break
 
       '''
@@ -147,10 +146,7 @@ class ClientThread(Thread):
       elif code == "refresh":
         # refresh timer
         self.refreshTimer()
-      
-      # elif code == "sprivpart1":
-      #   data = {'username': clientThread.user.getUsername()}
-      #   self.clientSocket.sendall(dumpsPacket("P2P", json.dumps(data)).encode())
+    
 
       elif code == "P2P":
         '''
@@ -170,10 +166,26 @@ class ClientThread(Thread):
         origin_user = origin_user[0]
         origin_user.clientSocket.sendall(dumpsPacket("P2PCONN", json.dumps(contents)).encode())
 
+      elif code == "P2PDECLINE":
+        '''
+          will communicate with Origin client
+          that the target has declined the request to start private
+          {
+            origin: _origin
+            target: _target
+          }
+        '''
+        contents = extractContentsToDict(contents)
+        origin = contents['origin']
+        target = contents['target']
+        origin_user = list(filter(lambda u: u.user.getUsername() == origin, getOnlineUsers()))
+        origin_user = origin_user[0]
+        origin_user.clientSocket.sendall(dumpsPacket(400, f"{target} has declined your private invitation\n").encode())
+
 
 
   def addEdge(self, edge):
-    self.edge.append(edge)
+    self.p2p.append(edge)
 
 
   '''
@@ -210,7 +222,6 @@ class ClientThread(Thread):
       self.user = user
       # appending this thread to online_users
       addOnlineUsers(self)
-
     
     # presence broadcast for login
     broadcastHandler(self, self.user.getUsername()+ " has logged in\n")
@@ -364,6 +375,8 @@ class ClientThread(Thread):
       return dumpsPacket(400, "Error. Your message could not be delivered as the recipient has blocked you\n").encode()
     except UserNotFoundException:
       return dumpsPacket(400, "Error. User not found\n").encode()
+    except CannotMessageSelfException:
+      return dumpsPacket(400, "Error. Cannot message self\n").encode()
     # let original client know it is done
     return dumpsPacket(200, "").encode()
 
@@ -417,13 +430,17 @@ class ClientThread(Thread):
   def startprivate(self, contents):
     contents = extractContentsToDict(contents)
     try:
-      return startPrivateHandler(self, contents)
-      self
+      startPrivateHandler(self, contents)
     except CannotEstablishPrivateWithSelfException:
-      return dumpsPacket(400, f"Error. Cannot Establish private connection with self\n").encode()
+      self.clientSocket.sendall(dumpsPacket(400, f"Error. Cannot Establish private connection with self\n").encode())
+    except UserHasBeenBlockedException:
+      self.clientSocket.sendall(dumpsPacket(400, f"Error. Cannot establish private connection with {contents['target']}, user has blocked you\n").encode())
+    # except PrivateConnectionAlreadyExistsException:
+    #   return dumpsPacket(400, f"Error. Private connection with {contents['target']} already exists\n").encode()
+    except UserNotFoundException:
+      self.clientSocket.sendall(dumpsPacket(400, f"Error. user {contents['target']} is not found\n").encode())
+
     
-    except PrivateConnectionAlreadyExistsException:
-      return dumpsPacket(400, f"Error. Private connection with {contents['target']} already exists\n").encode()
 
   @resetTimer
   def refreshTimer(self):

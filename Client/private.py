@@ -44,8 +44,10 @@ def replyYes(EstablisherSocket, edge_queue, username):
   sockt, addr = sock.accept()
   return sockt
 
-def replyNo(socket):
-  post(socket, 400, {})
+def replyNo(socket, edge_queue, username):
+
+  origin = edge_queue.pop(0)
+  post(socket, "P2PDECLINE", {'origin': origin, 'target': username})
 
 
 

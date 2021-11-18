@@ -1,7 +1,7 @@
 from Server.storage import getOnlineUsers, getUserByName
 from Server.routes.block import hasblocked
 
-from exceptions.MessageExceptions import UserHasBeenBlockedException
+from exceptions.MessageExceptions import UserHasBeenBlockedException, CannotMessageSelfException
 from exceptions.AuthExceptions import UserNotFoundException
 
 #utils
@@ -17,6 +17,7 @@ def messageHandler(clientThread, contents):
 
   message = contents['message']
   current_user = clientThread.user.getUsername()
+
 
 
   '''
@@ -43,6 +44,11 @@ def messageHandler(clientThread, contents):
       if(hasblocked(clientThread.user, user.user)):
         raise UserHasBeenBlockedException
       
+      '''
+        check if reciever is self
+      '''
+      if user == clientThread:
+        raise CannotMessageSelfException
 
       '''
         send message to matches

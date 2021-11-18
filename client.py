@@ -107,7 +107,6 @@ if __name__ == '__main__':
         # if response
         response = reader.recv(1048)
         if(response != "" and response != None and len(response) > 0):
-          # print(response)
           code, content = loadsPacket(response.decode())
 
           if(code == "200" or code == "500" or code=="400"):
@@ -124,25 +123,6 @@ if __name__ == '__main__':
             for sock in open_sockets:
               sock['socket'].close()
             exit(0)
-          
-          # elif(code == "P2PDUPE"):
-          #   '''
-          #     Check if client already has P2P connection
-          #   '''
-          #   contents = extractContentsToDict(content)
-          #   user = contents['username']
-
-          #   if(connectionAlreadyExists(open_sockets, user)):
-          #     print("branch1")
-          #     post(clientSocket, 400, {'message': 'client already exists'})
-          #   else:
-          #     print("branch2")
-          #     for sock in open_sockets_as_list:
-          #       print(sock)
-          #       #sock.sendall(dumpsPacket("whoelse", {}).encode())
-          #     print(open_sockets)
-          #     clientSocket.sendall(dumpsPacket("sprivp1", {}).encode())
-          #     #post(clientSocket, 200, {})
 
           
           elif(code == "P2P"):
@@ -269,7 +249,7 @@ if __name__ == '__main__':
           #starts listening
 
         elif message == "n" or message == "N":
-          replyNo(clientSocket)
+          replyNo(clientSocket, edge_queue, username)
 
         elif message == "logout":
           # close all connections
