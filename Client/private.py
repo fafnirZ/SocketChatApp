@@ -1,8 +1,9 @@
 from util.Request import post
 from util.packetParser import dumpsPacket
+import json
 from socket import *
 
-def startPrivateHandler(socket, command:str):
+def startPrivateHandler(open_sockets, socket, command:str):
   '''
     command: startprivate _user
     format:
@@ -27,6 +28,10 @@ def startPrivateHandler(socket, command:str):
     
   target = command[1]
 
+  if connectionAlreadyExists(open_sockets, target):
+    print(f"Error. private connection with {target} already exists")
+    return
+
   post(socket, 'startprivate', {'target': target})
   
 
@@ -42,16 +47,15 @@ def replyYes(EstablisherSocket, edge_queue, username):
   origin = edge_queue.pop(0)
 
   # send sock information to other client via server
-  post(EstablisherSocket, "P2P", {'ip': sock.getsockname()[0], 'port': sock.getsockname()[1], 'origin': origin, 'target': username})
+  EstablisherSocket.sendall(dumpsPacket("P2P", json.dumps({'ip': sock.getsockname()[0], 'port': sock.getsockname()[1], 'origin': origin, 'target': username})+"\n\n").encode())
 
   # wait till connection is established
   sockt, addr = sock.accept()
   return sockt
 
 def replyNo(socket, edge_queue, username):
-
   origin = edge_queue.pop(0)
-  post(socket, "P2PDECLINE", {'origin': origin, 'target': username})
+  socket.sendall(dumpsPacket("P2PDECLINE", json.dumps({'origin': origin, 'target': username})+"\n\n").encode())
 
 
 

@@ -1,5 +1,6 @@
 from util.packetParser import dumpsPacket
 from util.Request import post
+import json
 
 def refreshTimer(open_sockets):
   skt = None
@@ -7,5 +8,5 @@ def refreshTimer(open_sockets):
     if sockt['connection'] == 'server':
       skt = sockt['socket']
   if(skt != None):
-    post(skt, "refresh", {})
+    skt.sendall(dumpsPacket("refresh", json.dumps({})+"\n").encode())
 

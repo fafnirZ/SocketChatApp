@@ -19,6 +19,10 @@ def blockHandler(socket, command: str):
     [400] Error. cannot block self
   '''
   command = command.split(" ")
+  if len(command) < 2:
+    print("Error. Invalid command")
+    return
+
   user = command[1]
 
   post(socket, 'block', {'block': user})
@@ -41,6 +45,9 @@ def unblockHandler(socket, command: str):
     [400] Error. _user was not blocked
   '''
   command = command.split(" ")
+  if len(command) < 2:
+    print("Error. Invalid command")
+    return 
   user = command[1]
 
   post(socket, 'unblock', {'unblock': user})

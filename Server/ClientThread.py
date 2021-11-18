@@ -145,7 +145,7 @@ class ClientThread(Thread):
       
       elif code == "refresh":
         # refresh timer
-        self.refreshTimer()
+        self.refreshTimer(contents)
     
 
       elif code == "P2P":
@@ -428,6 +428,7 @@ class ClientThread(Thread):
 
   @resetTimer
   def startprivate(self, contents):
+    print(contents)
     contents = extractContentsToDict(contents)
     try:
       startPrivateHandler(self, contents)
@@ -443,5 +444,5 @@ class ClientThread(Thread):
 
 
   @resetTimer
-  def refreshTimer(self):
-    pass
+  def refreshTimer(self, contents):
+    contents = extractContentsToDict(contents)

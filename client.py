@@ -219,16 +219,18 @@ if __name__ == '__main__':
           unblockHandler(clientSocket, message)
 
         elif message.startswith('startprivate'):
-          startPrivateHandler(clientSocket, message)
-          refreshTimer(open_sockets)
+          startPrivateHandler(open_sockets, clientSocket, message)
+          
 
         elif message.startswith('private'):
-          privateMessageHandler(open_sockets, username, message)
           refreshTimer(open_sockets)
+          privateMessageHandler(open_sockets, username, message)
+       
 
         elif message.startswith('stopprivate'):
-          stopPrivateHandler(open_sockets, username, message)
           refreshTimer(open_sockets)
+          stopPrivateHandler(open_sockets, username, message)
+       
 
         elif message == 'y' or message == "Y":
           '''

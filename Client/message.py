@@ -18,6 +18,10 @@ def messageHandler(socket, command: str):
     [400] user has blocked you
   '''
   command = command.split(" ")
+  if len(command) < 3:
+    print("Error. Invalid command")
+    return 
+    
   reciever = command[1]
   message = " ".join(command[2:])
 
