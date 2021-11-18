@@ -21,6 +21,10 @@ def startPrivateHandler(socket, command:str):
     [400] a private connection with user is already established
   '''
   command = command.split(" ")
+  if len(command) < 2:
+    print("Error. Invalid command")
+    return 
+    
   target = command[1]
 
   post(socket, 'startprivate', {'target': target})
@@ -54,6 +58,11 @@ def replyNo(socket, edge_queue, username):
 def privateMessageHandler(open_sockets, username: str, command: str):
 
   command = command.split(" ")
+  if len(command) < 3:
+    print("Error. Invalid Command")
+    return 
+
+  
   target = command[1]
   message = " ".join(command[2:])
 
@@ -65,11 +74,16 @@ def privateMessageHandler(open_sockets, username: str, command: str):
   if(peerSocket != None):
     # send messages
     peerSocket.sendall(dumpsPacket(200, f"{username} (private): {message}\n").encode())
+  else:
+    print(f"Error. Cannot private message {target} you do not have an existing private connection")
 
 
 def stopPrivateHandler(open_sockets, username: str, command: str):
 
   command = command.split(" ")
+  if len(command) < 2:
+    print("Error. Invalid command")
+    return 
   target = command[1]
 
   for i, sock in enumerate(open_sockets):
@@ -77,6 +91,9 @@ def stopPrivateHandler(open_sockets, username: str, command: str):
       sockt = open_sockets.pop(i)
       sockt['socket'].sendall(dumpsPacket(200, f"{username} has closed your private connection\n").encode())
       sockt['socket'].close()
+      return
+  
+  print(f"Error. cannot end private with {target} you do not have an existing connection with them")
 
   
 def connectionAlreadyExists(open_sockets, target: str):

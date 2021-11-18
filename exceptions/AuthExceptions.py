@@ -11,3 +11,6 @@ class UserAlreadyOnlineException(Exception):
 
 class UserTimedOutException(Exception):
   pass
+
+class UserNotOnlineException(Exception):
+  pass

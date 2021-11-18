@@ -37,7 +37,6 @@ def startPrivateHandler(clientThread, contents: dict):
   # check if target has blocked user
   if hasblocked(clientThread.user, target_user.user):
     raise UserHasBeenBlockedException
- 
 
   edge = {'v1': clientThread.user.getUsername(), 'v2': target_user.user.getUsername()}
   clientThread.p2p.append(edge)

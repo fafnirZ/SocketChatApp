@@ -438,9 +438,9 @@ class ClientThread(Thread):
     # except PrivateConnectionAlreadyExistsException:
     #   return dumpsPacket(400, f"Error. Private connection with {contents['target']} already exists\n").encode()
     except UserNotFoundException:
-      self.clientSocket.sendall(dumpsPacket(400, f"Error. user {contents['target']} is not found\n").encode())
+      self.clientSocket.sendall(dumpsPacket(400, f"Error. user {contents['target']} is not found or online\n").encode())
 
-    
+
 
   @resetTimer
   def refreshTimer(self):
